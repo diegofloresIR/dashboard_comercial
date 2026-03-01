@@ -56,8 +56,19 @@ export default function App() {
 
   useEffect(() => {
     checkUser();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        // Fetch user profile to get their role, otherwise the change event overwrites the admin role
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        setUser({ ...session.user, role: profile?.role || 'pending', profile });
+      } else {
+        setUser(null);
+      }
     });
     return () => subscription.unsubscribe();
   }, [setUser]);
