@@ -17,7 +17,7 @@ services:
     ports:
       - "3000:3000"
     networks:
-      - traefik-public # Cambia "traefik-public" por el nombre real de tu red de Traefik
+      - Vpsnet # Cambiado a tu red Vpsnet
     deploy:
       labels:
         - "traefik.enable=true"
@@ -28,6 +28,6 @@ services:
         - "traefik.http.services.salesops.loadbalancer.server.port=3000"
 
 networks:
-  # Esta es la red de Portainer/Traefik. Reemplaza "traefik-public" por el nombre de tu red externa de Overlay
-  traefik-public:
+  # Esta es la red de Portainer/Traefik. (Extraída de tu captura 'Vpsnet')
+  Vpsnet:
     external: true
