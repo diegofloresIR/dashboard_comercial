@@ -23,6 +23,14 @@ const supabase = createClient(
 
 app.use(express.json());
 
+// Expose public config to the frontend at runtime
+app.get("/api/config", (req, res) => {
+  res.json({
+    supabaseUrl: process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
+    supabaseAnonKey: process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY
+  });
+});
+
 // --- GHL Internal Integration & OAuth Routes ---
 
 app.post("/api/crm/init-internal", async (req, res) => {

@@ -27,10 +27,29 @@ class ErrorBoundary extends React.Component<{ children: any }, { hasError: boole
   }
 }
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ErrorBoundary>
-      <App />
-    </ErrorBoundary>
-  </StrictMode>,
-);
+import { initSupabase } from './lib/supabase';
+
+// Helper to fetch runtime config and initialize Supabase
+async function init() {
+  try {
+    const res = await fetch('/api/config');
+    const { supabaseUrl, supabaseAnonKey } = await res.json();
+    initSupabase(supabaseUrl, supabaseAnonKey);
+  } catch (error) {
+    console.warn("Failed to load /api/config. Falling back to Vite env variables.");
+    initSupabase(
+      import.meta.env.VITE_SUPABASE_URL || 'https://xyzcompany.supabase.co',
+      import.meta.env.VITE_SUPABASE_ANON_KEY || 'dummy_key_for_dev'
+    );
+  }
+
+  createRoot(document.getElementById('root')!).render(
+    <StrictMode>
+      <ErrorBoundary>
+        <App />
+      </ErrorBoundary>
+    </StrictMode>,
+  );
+}
+
+init();
