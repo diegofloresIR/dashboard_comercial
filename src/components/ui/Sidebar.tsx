@@ -47,7 +47,7 @@ export const Sidebar = ({ navigations }: { navigations: any[] }) => {
                 {navigations.map(nav => (
                     <SidebarItem key={nav.to} {...nav} collapsed={!sidebarOpen} />
                 ))}
-                {user?.role === 'admin' && (
+                {user?.role?.toLowerCase().trim() === 'admin' && (
                     <>
                         <SidebarItem
                             icon={ShieldCheck}

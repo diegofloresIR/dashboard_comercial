@@ -159,7 +159,7 @@ export default function App() {
               <Route path="/funnel" element={<Funnel />} />
               <Route path="/targets" element={<Targets />} />
               <Route path="/copilot" element={<Copilot />} />
-              {user.role === 'admin' && (
+              {user.role?.toLowerCase().trim() === 'admin' && (
                 <>
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/settings" element={
