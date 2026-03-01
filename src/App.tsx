@@ -148,20 +148,24 @@ export default function App() {
               <Route path="/funnel" element={<Funnel />} />
               <Route path="/targets" element={<Targets />} />
               <Route path="/copilot" element={<Copilot />} />
-              {user.role === 'admin' && <Route path="/admin/users" element={<AdminUsers />} />}
-              <Route path="/settings" element={
-                <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl border border-white/50 dark:border-slate-700 text-center max-w-md mx-auto mt-12 shadow-xl">
-                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
-                    <Settings className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
-                  </div>
-                  <h2 className="text-2xl font-bold mb-4">Ajustes de Integración</h2>
-                  <p className="text-slate-500 dark:text-slate-400 mb-8">Administra tus conexiones a fuentes de datos y CRM.</p>
-                  <a href="/api/crm/oauth/start" className="inline-flex items-center justify-center gap-2 w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/20 transition-all">
-                    <Target className="w-5 h-5" />
-                    Vincular / Actualizar GoHighLevel
-                  </a>
-                </div>
-              } />
+              {user.role === 'admin' && (
+                <>
+                  <Route path="/admin/users" element={<AdminUsers />} />
+                  <Route path="/settings" element={
+                    <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl border border-white/50 dark:border-slate-700 text-center max-w-md mx-auto mt-12 shadow-xl">
+                      <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+                        <Settings className="w-8 h-8 text-indigo-600 dark:text-indigo-400" />
+                      </div>
+                      <h2 className="text-2xl font-bold mb-4">Ajustes de Integración</h2>
+                      <p className="text-slate-500 dark:text-slate-400 mb-8">Administra tus conexiones a fuentes de datos y CRM.</p>
+                      <a href="/api/crm/oauth/start" className="inline-flex items-center justify-center gap-2 w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/20 transition-all">
+                        <Target className="w-5 h-5" />
+                        Vincular / Actualizar GoHighLevel
+                      </a>
+                    </div>
+                  } />
+                </>
+              )}
               <Route path="*" element={<Navigate to="/overview" replace />} />
             </Routes>
           </div>
