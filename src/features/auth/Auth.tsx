@@ -36,7 +36,23 @@ export function Auth() {
                 if (error) throw error;
             }
         } catch (err: any) {
-            setError(err.message || 'Ocurrió un error. Verifica tus credenciales.');
+            let errorMsg = err.message || '';
+
+            if (errorMsg === 'Failed to fetch') {
+                errorMsg = 'Error de conexión. Verifica que la URL de Supabase esté bien configurada.';
+            } else if (errorMsg.includes('Invalid login credentials')) {
+                errorMsg = 'Credenciales inválidas. Comprueba tu correo y contraseña.';
+            } else if (errorMsg.includes('User already registered') || errorMsg.includes('already registered')) {
+                errorMsg = 'Ese correo electrónico ya está registrado.';
+            } else if (errorMsg.includes('Password should be at least')) {
+                errorMsg = 'La contraseña debe tener al menos 6 caracteres.';
+            } else if (errorMsg.includes('Email not confirmed')) {
+                errorMsg = 'Por favor, confirma tu correo antes de iniciar sesión.';
+            } else {
+                errorMsg = errorMsg || 'Ocurrió un error. Verifica tus credenciales.';
+            }
+
+            setError(errorMsg);
         } finally {
             setLoading(false);
         }
