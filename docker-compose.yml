@@ -14,8 +14,7 @@ services:
       # VARIABLES DE HIGHLEVEL
       - GHL_CLIENT_ID=tu_client_id
       - GHL_CLIENT_SECRET=tu_client_secret
-    ports:
-      - "3000:3000"
+
     networks:
       - Vpsnet # Cambiado a tu red Vpsnet
     deploy:
