@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  salesops-dashboard:
+    image: salesops-dashboard:latest
+    build: .
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # VARIABLES DE SUPABASE (Apuntar a tu stack local de Supabase)
+      - SUPABASE_URL=http://kong:8000 # Ejemplo, ajusta a tu red de swarm
+      - SUPABASE_ANON_KEY=tu_anon_key
+      - SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
+      # VARIABLES DE HIGHLEVEL
+      - GHL_CLIENT_ID=tu_client_id
+      - GHL_CLIENT_SECRET=tu_client_secret
+    ports:
+      - "3000:3000"
+    networks:
+      - proxy # Asumiendo que usas una red llamada proxy para Traefik
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.salesops.rule=Host(`dashboard.tudominio.com`)"
+        - "traefik.http.routers.salesops.entrypoints=websecure"
+        - "traefik.http.routers.salesops.tls=true"
+        - "traefik.http.routers.salesops.tls.certresolver=myresolver" # Ajusta al resolver de Traefik
+        - "traefik.http.services.salesops.loadbalancer.server.port=3000"
+
+networks:
+  proxy:
+    external: true
