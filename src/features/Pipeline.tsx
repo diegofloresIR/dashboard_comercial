@@ -32,7 +32,7 @@ export const Pipeline = () => {
                 let totalPipelineValue = 0;
 
                 const stageData = stages.map((stage: any, index: number) => {
-                    const stageOpps = pipeOpps.filter((o: any) => o.pipeline_stage_id === stage.id && o.status === 'open');
+                    const stageOpps = pipeOpps.filter((o: any) => o.stage_id === stage.id && o.status === 'open');
                     const value = stageOpps.reduce((sum: number, o: any) => sum + Number(o.value || 0), 0);
                     totalPipelineValue += value;
 

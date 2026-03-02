@@ -7,37 +7,36 @@ import {
 } from 'recharts';
 
 export const Funnel = () => {
-    const { pipelines, connection, filters } = useStore();
-    const [funnelData, setFunnelData] = useState<any[]>([]);
+    const { pipelines, connection, filters, opportunities } = useStore();
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        const fetchFunnel = async () => {
-            if (!connection) return;
-            setLoading(true);
-            try {
-                const query = new URLSearchParams({
-                    locationId: connection.location_id,
-                    startDate: filters.startDate,
-                    endDate: filters.endDate,
-                    pipelineId: filters.pipelineId || (pipelines[0]?.id || '')
-                });
-                const res = await fetch(`/api/metrics/funnel?${query.toString()}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setFunnelData(Array.isArray(data) ? data : []);
-                }
-            } catch (err) {
-                console.error('Error fetching funnel data:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const funnelData = React.useMemo(() => {
+        if (!pipelines || pipelines.length === 0) return [];
 
-        if (pipelines.length > 0) {
-            fetchFunnel();
-        }
-    }, [connection, filters, pipelines]);
+        // Use the selected pipeline or default to the first one available
+        const activePipelineId = filters.pipelineId || pipelines[0]?.id;
+        const activePipeline = pipelines.find(p => p.id === activePipelineId);
+
+        if (!activePipeline || !activePipeline.stages) return [];
+
+        const pipeOpps = (Array.isArray(opportunities) ? opportunities : []).filter(o => o.pipeline_id === activePipelineId);
+
+        // In a true funnel, an opportunity in Stage 3 also theoretically passed through Stages 1 and 2.
+        // We compute cumulative counts by iterating backwards.
+        let cumulativeCount = 0;
+
+        const stagesData = [...activePipeline.stages].reverse().map(stage => {
+            const countInStage = pipeOpps.filter(o => o.stage_id === stage.id).length;
+            cumulativeCount += countInStage;
+            return {
+                id: stage.id,
+                name: stage.name,
+                count: cumulativeCount
+            };
+        }).reverse();
+
+        return stagesData;
+    }, [pipelines, opportunities, filters.pipelineId]);
 
     if (loading) return (
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">

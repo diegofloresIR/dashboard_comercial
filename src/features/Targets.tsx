@@ -1,17 +1,79 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useStore } from '../store/useStore';
-import { Target } from 'lucide-react';
+import { Target, Edit2, Save, X } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 export const Targets = () => {
-    const { metrics } = useStore();
+    const { metrics, user } = useStore();
+
+    const [targetRevenue, setTargetRevenue] = useState(500000);
+    const [isEditing, setIsEditing] = useState(false);
+    const [tempTarget, setTempTarget] = useState('');
+    const [isSaving, setIsSaving] = useState(false);
+
+    useEffect(() => {
+        const fetchTarget = async () => {
+            try {
+                const { data } = await supabase
+                    .from('app_settings')
+                    .select('value')
+                    .eq('key', 'revenue_target')
+                    .single();
+
+                if (data?.value?.amount) {
+                    setTargetRevenue(Number(data.value.amount));
+                }
+            } catch (err) {
+                console.error("No custom target found, using default.", err);
+            }
+        };
+        fetchTarget();
+    }, []);
+
+    const handleSave = async () => {
+        const amount = Number(tempTarget);
+        if (isNaN(amount) || amount <= 0) return;
+
+        setIsSaving(true);
+        try {
+            const { error } = await supabase
+                .from('app_settings')
+                .upsert({
+                    key: 'revenue_target',
+                    value: { amount }
+                });
+
+            if (!error) {
+                setTargetRevenue(amount);
+                setIsEditing(false);
+            } else {
+                alert("Error al guardar el objetivo. ¿Tienes permisos de Admin?");
+            }
+        } catch (err) {
+            console.error("Save error:", err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
 
     const currentRevenue = metrics?.revenue || 0;
-    const targetRevenue = 500000; // Mock target
     const diff = targetRevenue - currentRevenue;
     const percentage = Math.min((currentRevenue / targetRevenue) * 100, 100);
 
     return (
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-8 rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500 text-center max-w-3xl mx-auto mt-10">
+            <div className="flex justify-end mb-4 h-8">
+                {user?.role === 'admin' && !isEditing && (
+                    <button
+                        onClick={() => { setTempTarget(targetRevenue.toString()); setIsEditing(true); }}
+                        className="flex items-center gap-2 text-sm text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 font-medium transition-colors"
+                    >
+                        <Edit2 className="w-4 h-4" />
+                        Editar Objetivo
+                    </button>
+                )}
+            </div>
+
             <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner rotate-3 hover:rotate-0 transition-transform">
                 <Target className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
             </div>
@@ -29,7 +91,28 @@ export const Targets = () => {
                     </div>
                     <div className="text-right">
                         <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Meta</p>
-                        <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">€{targetRevenue.toLocaleString()}</p>
+
+                        {isEditing ? (
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-2xl font-bold text-slate-700 dark:text-slate-300">€</span>
+                                <input
+                                    type="number"
+                                    value={tempTarget}
+                                    onChange={(e) => setTempTarget(e.target.value)}
+                                    className="w-32 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-1 text-xl font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    autoFocus
+                                />
+                                <button onClick={handleSave} disabled={isSaving} className="p-1.5 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors disabled:opacity-50">
+                                    <Save className="w-5 h-5" />
+                                </button>
+                                <button onClick={() => setIsEditing(false)} className="p-1.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        ) : (
+                            <p className="text-2xl font-bold text-slate-700 dark:text-slate-300">€{targetRevenue.toLocaleString()}</p>
+                        )}
+
                     </div>
                 </div>
 

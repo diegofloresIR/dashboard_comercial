@@ -48,7 +48,8 @@ export default function App() {
     setConnection,
     fetchMetadata,
     fetchMetrics,
-    fetchOpportunities
+    fetchOpportunities,
+    filters
   } = useStore();
 
   const [loading, setLoading] = useState(true);
@@ -90,7 +91,7 @@ export default function App() {
       fetchMetadata();
       fetchOpportunities();
     }
-  }, [connection, fetchMetrics, fetchMetadata, fetchOpportunities]);
+  }, [connection, filters, fetchMetrics, fetchMetadata, fetchOpportunities]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
