@@ -69,45 +69,66 @@ app.get("/api/auth/profile", requireAuth, async (req: any, res: any) => {
 });
 
 // Middleware to verify Admin JWT
-const requireAdmin = async (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: "Missing token" });
+const requireAdmin = async (req: any, res: any, next: any) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: "Missing token" });
 
-  const { data: { user }, error } = await supabase.auth.getUser(token);
-  if (error || !user) return res.status(401).json({ error: "Invalid token" });
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) return res.status(401).json({ error: "Invalid token" });
 
-  // Check if user is an admin in profiles (using service key bypasses RLS)
-  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single();
-  if (profile?.role !== 'admin') return res.status(403).json({ error: "Forbidden: Admins only" });
+    // Check if user is an admin in profiles (using service key bypasses RLS)
+    const { data: profile, error: dbError } = await supabase.from('profiles').select('role').eq('id', user.id).single();
+    if (dbError) {
+      console.error("requireAdmin db error:", dbError);
+    }
 
-  req.user = user;
-  next();
+    if (profile?.role !== 'admin') {
+      console.error(`User ${user.email} (ID: ${user.id}) denied admin access. Role is: ${profile?.role}`);
+      return res.status(403).json({ error: "Forbidden: Admins only" });
+    }
+
+    req.user = user;
+    next();
+  } catch (err: any) {
+    console.error("requireAdmin exception:", err);
+    res.status(500).json({ error: "Internal Server Error in requireAdmin" });
+  }
 };
 
 app.get("/api/admin/users", requireAdmin, async (req, res) => {
   try {
     // 1. Fetch from Auth API (Service Role only) to self-heal missing profiles
-    const { data: authData } = await supabase.auth.admin.listUsers();
+    try {
+      const { data: authData, error: authErr } = await supabase.auth.admin.listUsers();
+      if (authErr) {
+        console.warn("Supabase Auth API listUsers warning (self-healing skipped):", authErr.message);
+      } else if (authData?.users) {
+        const profilesToSync = authData.users.map(u => ({
+          id: u.id,
+          email: u.email,
+          full_name: u.user_metadata?.full_name || 'Nuevo Usuario',
+          role: 'pending',
+          created_at: u.created_at
+        }));
 
-    if (authData?.users) {
-      const profilesToSync = authData.users.map(u => ({
-        id: u.id,
-        email: u.email,
-        full_name: u.user_metadata?.full_name || 'Nuevo Usuario',
-        role: 'pending',
-        created_at: u.created_at
-      }));
-
-      if (profilesToSync.length > 0) {
-        await supabase.from('profiles').upsert(profilesToSync, { onConflict: 'id', ignoreDuplicates: true });
+        if (profilesToSync.length > 0) {
+          await supabase.from('profiles').upsert(profilesToSync, { onConflict: 'id', ignoreDuplicates: true });
+        }
       }
+    } catch (syncErr: any) {
+      console.warn("Exception during profile sync:", syncErr.message);
     }
 
     // 2. Fetch all active profiles for the dashboard
     const { data: profiles, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching profiles:", error);
+      throw error;
+    }
     res.json(profiles);
   } catch (error: any) {
+    console.error("/api/admin/users final catch:", error);
     res.status(500).json({ error: error.message });
   }
 });
