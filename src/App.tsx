@@ -85,6 +85,17 @@ export default function App() {
     }
   }, [connection, fetchMetrics, fetchMetadata, fetchOpportunities]);
 
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'GHL_AUTH_SUCCESS') {
+        fetchConnection(); // Refresh connection state immediately
+        alert('Integración completada con éxito. Los datos se sincronizarán en breve.');
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   const checkUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
@@ -169,10 +180,18 @@ export default function App() {
                       </div>
                       <h2 className="text-2xl font-bold mb-4">Ajustes de Integración</h2>
                       <p className="text-slate-500 dark:text-slate-400 mb-8">Administra tus conexiones a fuentes de datos y CRM.</p>
-                      <a href="/api/crm/oauth/start" className="inline-flex items-center justify-center gap-2 w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/20 transition-all">
+                      <button
+                        onClick={() => {
+                          const width = 600;
+                          const height = 700;
+                          const left = window.screen.width / 2 - width / 2;
+                          const top = window.screen.height / 2 - height / 2;
+                          window.open('/api/crm/oauth/start', 'GHL_Auth', 'width=' + width + ',height=' + height + ',top=' + top + ',left=' + left);
+                        }}
+                        className="inline-flex items-center justify-center gap-2 w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/20 transition-all cursor-pointer">
                         <Target className="w-5 h-5" />
                         Vincular / Actualizar GoHighLevel
-                      </a>
+                      </button>
                     </div>
                   } />
                 </>
@@ -183,34 +202,36 @@ export default function App() {
         </main>
 
         {/* Report Modal */}
-        {showReportModal && (
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-md p-8 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700"
-            >
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Enviar Informe Ejecutivo</h2>
-              <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Generaremos un resumen en PDF con base a los filtros actuales.</p>
+        {
+          showReportModal && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                className="bg-white dark:bg-slate-800 w-full max-w-md p-8 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700"
+              >
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Enviar Informe Ejecutivo</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">Generaremos un resumen en PDF con base a los filtros actuales.</p>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Destinatario</label>
-                  <input type="email" placeholder="ceo@empresa.com" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium text-slate-900 dark:text-white" />
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">Destinatario</label>
+                    <input type="email" placeholder="ceo@empresa.com" className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all font-medium text-slate-900 dark:text-white" />
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <button onClick={() => setShowReportModal(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
+                      Cancelar
+                    </button>
+                    <button onClick={() => { alert('¡Informe enviado!'); setShowReportModal(false); }} className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 transition-all">
+                      Enviar
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-3 pt-4">
-                  <button onClick={() => setShowReportModal(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
-                    Cancelar
-                  </button>
-                  <button onClick={() => { alert('¡Informe enviado!'); setShowReportModal(false); }} className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 transition-all">
-                    Enviar
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </div>
-    </BrowserRouter>
+              </motion.div>
+            </div>
+          )
+        }
+      </div >
+    </BrowserRouter >
   );
 }
