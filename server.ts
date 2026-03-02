@@ -17,8 +17,8 @@ const PORT = 3000;
 
 // Supabase Client (Service Role for backend ops)
 const supabase = createClient(
-  process.env.VITE_SUPABASE_URL || 'https://xyzcompany.supabase.co',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || 'dummy_key_for_dev'
+  process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://xyzcompany.supabase.co',
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || 'dummy_key_for_dev'
 );
 
 app.use(express.json());
@@ -153,13 +153,17 @@ app.get("/api/crm/oauth/callback", async (req, res) => {
     const { access_token, refresh_token, expires_in, locationId, scope } = response.data;
     const expiresAt = new Date(Date.now() + expires_in * 1000).toISOString();
 
-    await supabase.from("ghl_connections").upsert({
+    const { error: upsertError } = await supabase.from("ghl_connections").upsert({
       location_id: locationId,
       access_token,
       refresh_token,
       token_expires_at: expiresAt,
       scopes: scope.split(" "),
     }, { onConflict: "location_id" });
+
+    if (upsertError) {
+      throw new Error(`DB Save Failed: ${upsertError.message}`);
+    }
 
     res.send(`
       <html>
