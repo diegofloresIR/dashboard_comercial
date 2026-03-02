@@ -60,19 +60,23 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
         if (session?.user) {
-          const timeoutPromise = new Promise<{ data: any, error: any }>((_, reject) =>
-            setTimeout(() => reject(new Error('Profile fetch timeout')), 8000)
-          );
+          try {
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout')), 8000));
+            const profileRes = await Promise.race([
+              fetch('/api/auth/profile', { headers: { Authorization: `Bearer ${session.access_token}` } }),
+              timeoutPromise
+            ]) as Response;
 
-          const { data: profile, error: profileError } = await Promise.race([
-            supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-            timeoutPromise
-          ]) as any;
-
-          if (profileError && profileError.code !== 'PGRST116') {
-            console.error("Profile fetch error in auth listener:", profileError);
+            if (profileRes.ok) {
+              const profile = await profileRes.json();
+              setUser({ ...session.user, role: profile?.role || 'pending', profile });
+            } else {
+              setUser({ ...session.user, role: 'pending', profile: null });
+            }
+          } catch (err) {
+            console.error("Profile fetch error in auth listener:", err);
+            setUser({ ...session.user, role: 'pending', profile: null });
           }
-          setUser({ ...session.user, role: profile?.role || 'pending', profile });
         } else {
           setUser(null);
         }
@@ -118,16 +122,24 @@ export default function App() {
       if (sessionError) throw sessionError;
 
       if (session?.user) {
-        const { data: profile, error: profileError } = await Promise.race([
-          supabase.from('profiles').select('*').eq('id', session.user.id).single(),
-          timeoutPromise
-        ]) as any;
+        try {
+          const profileTimeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Profile timeout")), 8000));
+          const profileRes = await Promise.race([
+            fetch('/api/auth/profile', { headers: { Authorization: `Bearer ${session.access_token}` } }),
+            profileTimeoutPromise
+          ]) as Response;
 
-        if (profileError && profileError.code !== 'PGRST116') {
-          console.error("Profile fetch error:", profileError);
+          if (profileRes.ok) {
+            const profile = await profileRes.json();
+            setUser({ ...session.user, role: profile?.role || 'pending', profile });
+          } else {
+            console.warn("Backend profile fetch returned:", profileRes.status);
+            setUser({ ...session.user, role: 'pending', profile: null });
+          }
+        } catch (profileErr) {
+          console.error("Backend profile fetch error:", profileErr);
+          setUser({ ...session.user, role: 'pending', profile: null });
         }
-
-        setUser({ ...session.user, role: profile?.role || 'pending', profile });
       } else {
         setUser(null);
       }

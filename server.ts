@@ -33,6 +33,41 @@ app.get("/api/config", (req, res) => {
 
 // --- Admin User Management Routes ---
 
+// Middleware to verify Auth JWT (any logged in user)
+const requireAuth = async (req: any, res: any, next: any) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: "Missing token" });
+
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) return res.status(401).json({ error: "Invalid token" });
+
+  req.user = user;
+  next();
+};
+
+app.get("/api/auth/profile", requireAuth, async (req: any, res: any) => {
+  try {
+    const user = req.user;
+    // Service role bypasses RLS, guaranteeing the profile is readable
+    const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    if (!profile) {
+      // If still not found, self-heal immediately
+      const newProfile = {
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || 'Nuevo Usuario',
+        role: 'pending',
+        created_at: user.created_at
+      };
+      await supabase.from('profiles').upsert(newProfile);
+      return res.json(newProfile);
+    }
+    res.json(profile);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Middleware to verify Admin JWT
 const requireAdmin = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
