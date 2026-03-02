@@ -17,22 +17,32 @@ export function Auth() {
         setError(null);
 
         try {
+            const timeoutPromise = new Promise<{ error: any }>((_, reject) =>
+                setTimeout(() => reject(new Error('El servidor está tardando demasiado en responder. Verifica tu conexión.')), 8000)
+            );
+
             if (isLogin) {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                });
+                const { error } = await Promise.race([
+                    supabase.auth.signInWithPassword({
+                        email,
+                        password,
+                    }),
+                    timeoutPromise
+                ]) as any;
                 if (error) throw error;
             } else {
-                const { error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            full_name: fullName,
+                const { error } = await Promise.race([
+                    supabase.auth.signUp({
+                        email,
+                        password,
+                        options: {
+                            data: {
+                                full_name: fullName,
+                            }
                         }
-                    }
-                });
+                    }),
+                    timeoutPromise
+                ]) as any;
                 if (error) throw error;
             }
         } catch (err: any) {

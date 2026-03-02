@@ -60,11 +60,14 @@ export default function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
         if (session?.user) {
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
+          const timeoutPromise = new Promise<{ data: any, error: any }>((_, reject) =>
+            setTimeout(() => reject(new Error('Profile fetch timeout')), 8000)
+          );
+
+          const { data: profile, error: profileError } = await Promise.race([
+            supabase.from('profiles').select('*').eq('id', session.user.id).single(),
+            timeoutPromise
+          ]) as any;
 
           if (profileError && profileError.code !== 'PGRST116') {
             console.error("Profile fetch error in auth listener:", profileError);
