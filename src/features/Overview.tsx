@@ -216,6 +216,20 @@ export const Overview = () => {
                 </div>
             </div>
 
+            {/* TEMP DEBUG BLOCK */}
+            <div className="bg-red-500/10 border font-mono border-red-500/50 p-4 rounded-xl mt-10">
+                <h4 className="font-bold text-red-500 mb-2">DEBUG TAB (Oportunidades en Memoria: {opportunities.length})</h4>
+                <div className="max-h-64 overflow-y-auto text-xs text-slate-800 dark:text-slate-300">
+                    <ul className="space-y-1">
+                        {opportunities.map(o => (
+                            <li key={o.id} className="border-b border-white/10 pb-1">
+                                {o.name} | Status: <span className="font-bold text-blue-500">{o.status}</span> | Stage: {o.stage_id} | Pipeline: {o.pipeline_id}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </div>
+
         </div>
     );
 };
