@@ -29,7 +29,8 @@ const CustomTooltip = ({ active, payload, isCurrency = false }: any) => {
 };
 
 export const Overview = () => {
-    const { metrics, opportunities, pipelines, filters } = useStore();
+    const { metrics, opportunities, pipelines, filters, connection } = useStore();
+    const [rawGhlDump, setRawGhlDump] = React.useState<any>(null);
 
     const chartData = useMemo(() => {
         if (!opportunities || opportunities.length === 0) return null;
@@ -218,7 +219,26 @@ export const Overview = () => {
 
             {/* TEMP DEBUG BLOCK */}
             <div className="bg-red-500/10 border font-mono border-red-500/50 p-4 rounded-xl mt-10">
-                <h4 className="font-bold text-red-500 mb-2">DEBUG TAB (Oportunidades en Memoria: {opportunities.length})</h4>
+                <div className="flex justify-between items-center mb-4">
+                    <h4 className="font-bold text-red-500">DEBUG TAB (Oportunidades en Memoria: {opportunities.length})</h4>
+                    <button onClick={async () => {
+                        try {
+                            setRawGhlDump("Loading...");
+                            const res = await fetch(`/api/crm/debug-ghl-direct?locationId=${connection?.location_id}`);
+                            const data = await res.json();
+                            setRawGhlDump(data);
+                        } catch (e) { setRawGhlDump("Error fetching"); }
+                    }} className="bg-red-500 text-white px-3 py-1 rounded text-xs font-bold">Llamar a GHL API Directo</button>
+                </div>
+
+                {rawGhlDump && (
+                    <div className="mb-4 p-3 bg-red-900/30 text-white rounded text-xs">
+                        <strong>Raw GHL API Response:</strong><br />
+                        Total Returned by API endpoint: {rawGhlDump.totalCount}<br />
+                        {rawGhlDump.names && rawGhlDump.names.join(", ")}
+                    </div>
+                )}
+
                 <div className="max-h-64 overflow-y-auto text-xs text-slate-800 dark:text-slate-300">
                     <ul className="space-y-1">
                         {opportunities.map(o => (

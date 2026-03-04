@@ -796,6 +796,38 @@ app.post("/api/ghl/webhook", async (req, res) => {
   }
 });
 
+// --- TEMP DIRECT GHL DEBUG ENDPOINT ---
+app.get("/api/crm/debug-ghl-direct", async (req, res) => {
+  const { locationId } = req.query;
+  try {
+    const { data: connection } = await supabase.from("ghl_connections").select("*").eq("location_id", locationId).single();
+    if (!connection) return res.status(404).json({ error: "No connection." });
+
+    const isPit = connection.access_token.startsWith("pit-");
+    const isV1 = connection.refresh_token === "internal" && !isPit;
+    const baseURL = isV1 ? "https://rest.gohighlevel.com/v1" : "https://services.leadconnectorhq.com";
+    const headers: any = { Authorization: `Bearer ${connection.access_token}` };
+    if (!isV1) headers["Version"] = "2021-07-28";
+
+    const ghl = axios.create({ baseURL, headers });
+
+    // Explicitly query exactly 'open' status to test what GHL is sending us
+    const oppRes = await ghl.post("/opportunities/search", {
+      locationId: locationId,
+      status: "open",
+      limit: 100
+    });
+
+    const results = oppRes.data.opportunities || [];
+    res.json({
+      totalCount: results.length,
+      names: results.map((o: any) => `${o.name} (Stage: ${o.pipelineStageId || o.stageId})`)
+    });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message || "Failed API call" });
+  }
+});
+
 // --- TEMP DEBUG ENDPOINT ---
 app.get("/api/debug/dump", async (req, res) => {
   try {
