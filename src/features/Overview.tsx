@@ -31,7 +31,7 @@ export const Overview = () => {
     const { metrics, opportunities, totalOpps, pipelines } = useStore();
 
     const chartData = useMemo(() => {
-        if (!opportunities || opportunities.length === 0) return { trendData: [], distributionData: [], pacingData: null };
+        if (!opportunities || opportunities.length === 0) return { trendData: [], distributionData: [], pacingData: null, pipelineDistributionData: [] };
 
         const safeOpps = [...opportunities]
             .filter(o => o.created_at)
