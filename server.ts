@@ -1103,6 +1103,36 @@ app.get("/api/crm/users", async (req, res) => {
   }
 });
 
+app.get("/api/crm/closers", async (req, res) => {
+  const { locationId } = req.query;
+  try {
+    const { data, error } = await supabase.from('opportunities').select('raw, custom_fields').eq("location_id", locationId);
+    if (error) throw error;
+
+    const uniqueClosers = new Set<string>();
+    (data || []).forEach(o => {
+      const customFields = o.raw?.customFields || o.custom_fields;
+      if (customFields && Array.isArray(customFields)) {
+        const closerField = customFields.find((f: any) =>
+          String(f.key || "").toLowerCase().includes('closer') ||
+          String(f.name || "").toLowerCase().includes('closer') ||
+          String(f.id || "").toLowerCase().includes('closer')
+        );
+        if (closerField) {
+          const val = String(closerField.field_value || closerField.value || "").trim();
+          if (val && val.toLowerCase() !== 'none' && val.toLowerCase() !== 'null') {
+            uniqueClosers.add(val);
+          }
+        }
+      }
+    });
+
+    res.json(Array.from(uniqueClosers).sort());
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // --- Targets Endpoints ---
 
 app.get("/api/targets", async (req, res) => {
