@@ -21,8 +21,6 @@ import { Header } from './components/ui/Header';
 // Features
 import { Overview } from './features/Overview';
 import { Performance } from './features/Performance';
-import { Pipeline } from './features/Pipeline';
-import { Funnel } from './features/Funnel';
 import { Targets } from './features/Targets';
 import { Copilot } from './features/Copilot';
 import { Auth } from './features/auth/Auth';
@@ -32,8 +30,6 @@ import { AdminUsers } from './features/AdminUsers';
 const navigations = [
   { icon: LayoutDashboard, label: 'Resumen', to: '/overview' },
   { icon: Users, label: 'Rendimiento', to: '/performance' },
-  { icon: GitBranch, label: 'Pipeline', to: '/pipeline' },
-  { icon: BarChart2, label: 'Funnel', to: '/funnel' },
   { icon: Target, label: 'Objetivos', to: '/targets' },
   { icon: MessageSquare, label: 'Copilot', to: '/copilot' }
 ];
@@ -237,8 +233,6 @@ export default function App() {
               <Route path="/" element={<Navigate to="/overview" replace />} />
               <Route path="/overview" element={<Overview />} />
               <Route path="/performance" element={<Performance />} />
-              <Route path="/pipeline" element={<Pipeline />} />
-              <Route path="/funnel" element={<Funnel />} />
               <Route path="/targets" element={<Targets />} />
               <Route path="/copilot" element={<Copilot />} />
               {user.role?.toLowerCase().trim() === 'admin' && (

@@ -9,7 +9,34 @@ export const Performance = () => {
     const safeOpps = Array.isArray(opportunities) ? opportunities : [];
 
     const performanceData = (Array.isArray(ghlUsers) ? ghlUsers : []).map((user: any) => {
-        const userOpps = safeOpps.filter((o: any) => o.owner_user_id === user.id);
+        const isCloser = (o: any) => {
+            // Support both mapped custom_fields (if we ever did) or raw GHL payload
+            const customFields = o.custom_fields || o.raw?.customFields;
+            if (!customFields || !Array.isArray(customFields)) return false;
+
+            const closerField = customFields.find((f: any) =>
+                String(f.key || "").toLowerCase().includes('closer') ||
+                String(f.name || "").toLowerCase().includes('closer') ||
+                String(f.id || "").toLowerCase().includes('closer')
+            );
+
+            if (!closerField) return false;
+
+            const val = String(closerField.field_value || closerField.value || "").toLowerCase().trim();
+            if (!val) return false;
+
+            // Match by ID
+            if (val === String(user.id).toLowerCase()) return true;
+
+            // Match by Full Name
+            const userFullName = `${user.firstName || ''} ${user.lastName || ''}`.toLowerCase().trim();
+            if (val === userFullName && userFullName !== "") return true;
+            if (val.includes(String(user.firstName || '').toLowerCase()) && val.includes(String(user.lastName || '').toLowerCase()) && user.firstName) return true;
+
+            return false;
+        };
+
+        const userOpps = safeOpps.filter(isCloser);
         const wonOpps = userOpps.filter((o: any) => o.status === 'won');
         const lostOpps = userOpps.filter((o: any) => o.status === 'lost');
 
