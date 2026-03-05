@@ -233,12 +233,20 @@ app.get("/api/crm/status", async (req, res) => {
 });
 
 app.get("/api/crm/debug-status", async (req, res) => {
-  const { locationId } = req.query;
-  if (!locationId) return res.send("Missing locationId in query string");
+  let { locationId } = req.query;
   try {
-    const startObj = await supabase.from('ghl_connections').select('*').eq('location_id', locationId).single();
+    let startObj;
+    if (locationId) {
+      startObj = await supabase.from('ghl_connections').select('*').eq('location_id', locationId).single();
+    } else {
+      startObj = await supabase.from('ghl_connections').select('*').limit(1).single();
+      if (startObj.data) {
+        locationId = startObj.data.location_id;
+      }
+    }
+
     if (!startObj.data) {
-      return res.send("No connection found in database for that location.");
+      return res.send("No connection found in database for that location (or no connections at all).");
     }
 
     const connectionInfo = {
