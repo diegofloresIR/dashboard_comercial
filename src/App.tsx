@@ -259,9 +259,52 @@ export default function App() {
                           const top = window.screen.height / 2 - height / 2;
                           window.open('/api/crm/oauth/start', 'GHL_Auth', 'width=' + width + ',height=' + height + ',top=' + top + ',left=' + left);
                         }}
-                        className="inline-flex items-center justify-center gap-2 w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/20 transition-all cursor-pointer">
+                        className="inline-flex items-center justify-center gap-2 w-full px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 dark:shadow-blue-900/20 transition-all cursor-pointer mb-4">
                         <Target className="w-5 h-5" />
                         Vincular / Actualizar GoHighLevel
+                      </button>
+
+                      <hr className="border-slate-200 dark:border-slate-700 my-6" />
+
+                      <h3 className="text-lg font-bold text-rose-500 mb-2">Zona de Peligro</h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+                        Si los datos del Dashboard no coinciden con GHL, usa este botón para borrar la base de datos local y traer todo de nuevo.
+                      </p>
+
+                      <button
+                        onClick={async () => {
+                          if (!useStore.getState().connection) return alert('No hay conexión activa.');
+                          if (confirm('¿Estás seguro de que quieres reiniciar los datos? Esto borrará los registros actuales y los traerá frescos de GHL.')) {
+                            try {
+                              const btn = document.getElementById('btn-reiniciar');
+                              if (btn) btn.innerText = 'Sincronizando...';
+                              const { location_id } = useStore.getState().connection;
+                              const url = `/api/crm/sync?locationId=${location_id}&full=true`;
+                              const res = await fetch(url);
+                              const data = await res.json();
+
+                              if (res.ok) {
+                                await Promise.all([
+                                  useStore.getState().fetchMetrics(),
+                                  useStore.getState().fetchMetadata(),
+                                  useStore.getState().fetchOpportunities()
+                                ]);
+                                alert('¡Reinicio completado! ' + data.count + ' oportunidades importadas. Los datos son ahora un espejo exacto de GHL.');
+                              } else {
+                                alert(data.error || 'Sync failed');
+                              }
+                            } catch (err) {
+                              console.error(err);
+                              alert('Error fatal al sincronizar.');
+                            } finally {
+                              const btn = document.getElementById('btn-reiniciar');
+                              if (btn) btn.innerText = 'Reiniciar Base de Datos Local';
+                            }
+                          }
+                        }}
+                        id="btn-reiniciar"
+                        className="inline-flex items-center justify-center gap-2 w-full px-8 py-4 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-500/10 dark:hover:bg-rose-500/20 dark:text-rose-400 rounded-xl font-bold border border-rose-200 dark:border-rose-500/30 transition-all cursor-pointer">
+                        Reiniciar Base de Datos Local
                       </button>
                     </div>
                   } />
