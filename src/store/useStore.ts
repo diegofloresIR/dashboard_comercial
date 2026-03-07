@@ -59,11 +59,11 @@ export const useStore = create<AppState>((set, get) => ({
   metrics: null,
 
   filters: {
-    startDate: format(subDays(new Date(), 30), 'yyyy-MM-dd'),
+    startDate: format(new Date(2000, 0, 1), 'yyyy-MM-dd'),
     endDate: format(new Date(), 'yyyy-MM-dd'),
     pipelineId: '',
     userId: '',
-    period: '30days'
+    period: 'all'
   },
 
   setUser: (user) => set({ user }),

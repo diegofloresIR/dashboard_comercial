@@ -65,8 +65,7 @@ async function check() {
     try {
         const oppRes = await axios.post("https://services.leadconnectorhq.com/opportunities/search", {
             locationId,
-            status: "open",
-            limit: 10,
+            limit: 5,
             page: 1
         }, {
             headers: {
@@ -76,8 +75,24 @@ async function check() {
         });
 
         console.log(`Success! Found ${oppRes.data.opportunities?.length} opportunities.`);
-        if (oppRes.data.opportunities?.length > 0) {
-            console.log("Sample Opp:", JSON.stringify(oppRes.data.opportunities[0], null, 2).substring(0, 500));
+        if (oppRes.data.meta) {
+            console.log("Meta:", oppRes.data.meta);
+        }
+
+        // Try page 2
+        const oppRes2 = await axios.post("https://services.leadconnectorhq.com/opportunities/search", {
+            locationId,
+            limit: 5,
+            page: 2
+        }, {
+            headers: {
+                Authorization: `Bearer ${connection.access_token}`,
+                Version: '2021-07-28'
+            }
+        });
+        console.log(`Page 2: Found ${oppRes2.data.opportunities?.length} opportunities.`);
+        if (oppRes2.data.opportunities?.length > 0) {
+            console.log("Page 2 First Opp Name:", oppRes2.data.opportunities[0].name);
         }
     } catch (err: any) {
         console.error('FETCH OPPORTUNITIES FAILED:', err.response?.data || err.message);

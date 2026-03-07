@@ -187,10 +187,10 @@ export const Header = ({ onNewReport }: { onNewReport: () => void }) => {
 
 
 
-                {(filters.pipelineId || filters.userId || filters.period !== '30days') && (
+                {(filters.pipelineId || filters.userId || filters.period !== 'all') && (
                     <button
                         onClick={() => {
-                            handlePeriodChange('30days');
+                            handlePeriodChange('all');
                             setFilters({ pipelineId: '', userId: '' });
                         }}
                         className="text-xs text-rose-500 font-bold hover:underline ml-auto flex items-center gap-1 bg-rose-50 dark:bg-rose-900/20 px-3 py-1.5 rounded-lg"

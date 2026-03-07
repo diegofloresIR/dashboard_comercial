@@ -657,11 +657,8 @@ app.get("/api/crm/sync", async (req, res) => {
               const oppRes = await ghl.post("/opportunities/search", {
                 locationId,
                 limit: 100, // Maximum per page request
+                page: page
               });
-
-              // The V2 search endpoint handles pagination differently? 
-              // Some versions don't have page/skip in body. Let me try adding it to URL or if it's not supported, break out.
-              // We'll just append it to the body for now since some docs say it supports 'page'.
 
               const fetchedOpps = oppRes.data.opportunities || [];
               if (fetchedOpps.length > 0) {
@@ -672,12 +669,12 @@ app.get("/api/crm/sync", async (req, res) => {
                 const newOpps = fetchedOpps.filter((o: any) => !existingIds.has(o.id));
                 allOpps = [...allOpps, ...newOpps];
 
-                // Since we removed 'page' from body because some V2 versions reject unknown props:
-                // If it returned 100, maybe there's more? But wait, without pagination args it always returns page 1.
-                // Let's add 'page' to query or url but GHL search might not even paginate if we just want up to 100? No, let's keep 'page' in the body but test it.
-                // Actually, passing 'page' in V2 search might throw an error. So we break out completely for now if it reaches 100, or we filter locally.
-                hasMore = false; // Just to be super safe that we don't infinite loop. We'll get first 100.
-
+                // If it returned a full page of 100, there might be more
+                if (fetchedOpps.length === 100) {
+                  page++;
+                } else {
+                  hasMore = false; // Less than 100 means we're on the last page
+                }
               } else {
                 hasMore = false; // Zero results means we're done
               }
