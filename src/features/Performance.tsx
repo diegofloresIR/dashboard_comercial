@@ -15,6 +15,7 @@ export const Performance = () => {
             if (!customFields || !Array.isArray(customFields)) return false;
 
             const closerField = customFields.find((f: any) =>
+                String(f.id || "") === 'DPEKghcOYLZADdLcTR8Q' ||
                 String(f.key || "").toLowerCase().includes('closer') ||
                 String(f.name || "").toLowerCase().includes('closer') ||
                 String(f.id || "").toLowerCase().includes('closer')
@@ -22,7 +23,9 @@ export const Performance = () => {
 
             if (!closerField) return false;
 
-            const val = String(closerField.field_value || closerField.value || "").toLowerCase().trim();
+            let rawVal = closerField.fieldValue || closerField.fieldValueString || closerField.field_value || closerField.value;
+            if (Array.isArray(rawVal) && rawVal.length > 0) rawVal = rawVal[0];
+            const val = String(rawVal || "").toLowerCase().trim();
             if (!val) return false;
 
             // Provide a direct string match since val and closerName are both strings
