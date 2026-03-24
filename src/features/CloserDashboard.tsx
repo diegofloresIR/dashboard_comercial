@@ -53,10 +53,10 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
 
   // 1. Volumen de Leads
   const totalLeads = userOpps.length;
-  const contactedSet = userOpps.filter(o => ![STAGES.NUEVO, STAGES.INTENTO, STAGES.SLA].includes(o.pipelineStageId));
+  const contactedSet = userOpps.filter(o => ![STAGES.NUEVO, STAGES.INTENTO, STAGES.SLA].includes(o.stage_id));
   const contactedCount = contactedSet.length;
-  const appointmentsCount = userOpps.filter(o => o.pipelineStageId === STAGES.CITA).length;
-  const salesCount = userOpps.filter(o => o.pipelineStageId === STAGES.PAGO_COMPLETO).length;
+  const appointmentsCount = userOpps.filter(o => o.stage_id === STAGES.CITA).length;
+  const salesCount = userOpps.filter(o => o.stage_id === STAGES.PAGO_COMPLETO).length;
 
   // 2. Ratios
   const contactRate = totalLeads > 0 ? (contactedCount / totalLeads) * 100 : 0;
@@ -64,13 +64,13 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
   const totalSaleRate = totalLeads > 0 ? (salesCount / totalLeads) * 100 : 0;
 
   // 3. Estado del Pipeline
-  const closeFollowUp = userOpps.filter(o => o.pipelineStageId === STAGES.SEGUIM_CERCANO).length;
-  const longFollowUp = userOpps.filter(o => o.pipelineStageId === STAGES.SEGUIM_LEJANO).length;
-  const discardedCount = userOpps.filter(o => [STAGES.DESCARTADO, STAGES.NO_CUALIFICA].includes(o.pipelineStageId)).length;
-  const totalRevenue = userOpps.filter(o => o.pipelineStageId === STAGES.PAGO_COMPLETO).reduce((acc, o) => acc + Number(o.value || 0), 0);
+  const closeFollowUp = userOpps.filter(o => o.stage_id === STAGES.SEGUIM_CERCANO).length;
+  const longFollowUp = userOpps.filter(o => o.stage_id === STAGES.SEGUIM_LEJANO).length;
+  const discardedCount = userOpps.filter(o => [STAGES.DESCARTADO, STAGES.NO_CUALIFICA].includes(o.stage_id)).length;
+  const totalRevenue = userOpps.filter(o => o.stage_id === STAGES.PAGO_COMPLETO).reduce((acc, o) => acc + Number(o.value || 0), 0);
 
   // 4. Métricas Avanzadas
-  const failedAttempts = userOpps.filter(o => [STAGES.INTENTO, STAGES.SLA].includes(o.pipelineStageId)).length;
+  const failedAttempts = userOpps.filter(o => [STAGES.INTENTO, STAGES.SLA].includes(o.stage_id)).length;
   const discardRate = totalLeads > 0 ? (discardedCount / totalLeads) * 100 : 0;
 
   // Phase breakdown for table
@@ -87,8 +87,8 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
 
   const tableData = phases.map(p => {
     const count = p.ids 
-      ? userOpps.filter(o => p.ids!.includes(o.pipelineStageId)).length
-      : userOpps.filter(o => o.pipelineStageId === p.id).length;
+      ? userOpps.filter(o => p.ids!.includes(o.stage_id)).length
+      : userOpps.filter(o => o.stage_id === p.id).length;
     const percentage = totalLeads > 0 ? (count / totalLeads) * 100 : 0;
     return { ...p, count, percentage };
   });
