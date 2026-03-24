@@ -3,8 +3,11 @@ import { useStore } from '../store/useStore';
 import { ChartSkeleton, EmptyState } from '../components/ui/Indicators';
 import {
     PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend,
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Label
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Label,
+    AreaChart, Area
 } from 'recharts';
+import { format, parseISO, startOfDay } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 // Colors based on the screenshot (GHL standard)
 const COLORS = ['#38bdf8', '#fbbf24', '#a855f7', '#818cf8', '#6366f1', '#4ade80', '#f472b6', '#f87171'];
@@ -95,6 +98,24 @@ export const Overview = () => {
             });
         }
 
+        // 6. Opportunities Over Time (Created)
+        const timeData: any[] = [];
+        const dateGroups: { [key: string]: number } = {};
+
+        safeOpps.forEach(o => {
+            const dateStr = format(parseISO(o.created_at), 'yyyy-MM-dd');
+            dateGroups[dateStr] = (dateGroups[dateStr] || 0) + 1;
+        });
+
+        Object.keys(dateGroups)
+            .sort()
+            .forEach(date => {
+                timeData.push({
+                    date: format(parseISO(date), 'dd MMM', { locale: es }),
+                    count: dateGroups[date]
+                });
+            });
+
         return {
             statusData,
             totalStatus: openCount + wonCount,
@@ -103,7 +124,8 @@ export const Overview = () => {
             winRate,
             wonValue,
             stageData,
-            totalOpenInPipe
+            totalOpenInPipe,
+            timeData
         };
 
     }, [opportunities, pipelines, filters.pipelineId]);
@@ -123,7 +145,53 @@ export const Overview = () => {
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
 
-            {/* Top Row: 3 Widgets */}
+            {/* Trends Chart: Opps over Time */}
+            <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 rounded-3xl border border-white/50 dark:border-slate-700/50 shadow-sm">
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 className="font-bold text-slate-900 dark:text-white text-sm">Oportunidades Creadas (TIEMPO)</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Tendencia de generación de leads en el periodo seleccionado</p>
+                    </div>
+                </div>
+                <div className="w-full h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData.timeData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-700" />
+                            <XAxis 
+                                dataKey="date" 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fontSize: 10, fontWeight: 'bold', fill: '#94a3b8' }} 
+                            />
+                            <YAxis 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fontSize: 10, fontWeight: 'bold', fill: '#94a3b8' }} 
+                            />
+                            <RechartsTooltip 
+                                content={<CustomTooltip />} 
+                            />
+                            <Area 
+                                type="monotone" 
+                                dataKey="count" 
+                                name="Leads"
+                                stroke="#6366f1" 
+                                strokeWidth={3}
+                                fillOpacity={1} 
+                                fill="url(#colorCount)" 
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+            </div>
+
+            {/* Middle Row: 3 Widgets */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* 1. Opportunity Status */}

@@ -58,7 +58,7 @@ export const Header = ({ onNewReport }: { onNewReport: () => void }) => {
     };
 
     return (
-        <header className="flex flex-col gap-6 mb-8 mt-2 sticky top-0 z-30 pt-4 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xl pb-4 border-b border-white/20 dark:border-slate-800/20">
+        <header className="flex flex-col gap-4 mb-8 mt-0 sticky top-0 z-30 pt-4 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-xl pb-4 border-b border-slate-200/50 dark:border-slate-800/50 -mx-4 lg:-mx-8 px-4 lg:px-8">
             <div className="flex justify-between items-center px-2">
                 <div className="flex items-center gap-4">
                     <button
