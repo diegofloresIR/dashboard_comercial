@@ -1,10 +1,12 @@
 import React from 'react';
 import { useStore } from '../store/useStore';
-import { TrendingUp, AlertCircle } from 'lucide-react';
+import { TrendingUp, AlertCircle, ArrowLeft } from 'lucide-react';
 import { EmptyState } from '../components/ui/Indicators';
+import { CloserDashboard } from './CloserDashboard';
 
 export const Performance = () => {
     const { customClosers, opportunities } = useStore();
+    const [selectedCloser, setSelectedCloser] = React.useState<string | null>(null);
 
     const safeOpps = Array.isArray(opportunities) ? opportunities : [];
 
@@ -54,6 +56,10 @@ export const Performance = () => {
         };
     }).sort((a: any, b: any) => b.revenue - a.revenue).filter(u => u.oppCount > 0);
 
+    if (selectedCloser) {
+        return <CloserDashboard closerName={selectedCloser} opportunities={safeOpps} onBack={() => setSelectedCloser(null)} />;
+    }
+
     if (performanceData.length === 0) {
         return <EmptyState title="Sin actividad de equipo" description="No hay métricas de rendimiento para los closers en el periodo seleccionado." />;
     }
@@ -80,7 +86,11 @@ export const Performance = () => {
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700/50">
                         {performanceData.map((closer: any, index: number) => (
-                            <tr key={closer.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group cursor-pointer">
+                            <tr 
+                                key={closer.id} 
+                                onClick={() => setSelectedCloser(closer.id)}
+                                className="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group cursor-pointer"
+                            >
                                 <td className="px-6 py-5">
                                     <div className="flex items-center gap-4">
                                         <div className="relative">
