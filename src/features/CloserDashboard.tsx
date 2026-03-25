@@ -17,6 +17,7 @@ interface CloserDashboardProps {
   closerName: string;
   opportunities: any[];
   onBack: () => void;
+  periodLabel?: string;
 }
 
 const STAGES = {
@@ -36,7 +37,7 @@ const STAGES = {
   DESCARTADO: '00025815-cd2e-4bce-adc4-d4312c7552a8'
 };
 
-export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, opportunities, onBack }) => {
+export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, opportunities, onBack, periodLabel = "Periodo Seleccionado" }) => {
   // Filter opportunities for this closer
   const userOpps = opportunities.filter(o => {
     const customFields = Array.isArray(o.raw?.customFields) ? o.raw.customFields : (Array.isArray(o.custom_fields) ? o.custom_fields : []);
@@ -72,6 +73,16 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
   // 4. Métricas Avanzadas
   const failedAttempts = userOpps.filter(o => [STAGES.INTENTO, STAGES.SLA].includes(o.stage_id)).length;
   const discardRate = totalLeads > 0 ? (discardedCount / totalLeads) * 100 : 0;
+  
+  // New Metrics
+  const avgTicket = salesCount > 0 ? totalRevenue / salesCount : 0;
+  const noShows = userOpps.filter(o => o.stage_id === STAGES.NOSHOW).length;
+  const bookedTotal = appointmentsCount + noShows;
+  const noShowRate = bookedTotal > 0 ? (noShows / bookedTotal) * 100 : 0;
+  
+  const openOpps = userOpps.filter(o => !['won', 'lost', 'abandoned'].includes(o.status) && ![STAGES.PAGO_COMPLETO, STAGES.DESCARTADO, STAGES.NO_CUALIFICA].includes(o.stage_id));
+  const openValue = openOpps.reduce((acc, o) => acc + Number(o.value || 0), 0);
+  const projectedRevenue = openValue * (totalSaleRate / 100);
 
   // Phase breakdown for table
   const phases = [
@@ -125,7 +136,7 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
               DASHBOARD CLOSER | <span className="text-indigo-400">{closerName.toUpperCase()}</span>
             </h1>
             <p className="text-xs text-slate-500 font-bold uppercase tracking-tighter mt-1 opacity-70">
-              Ratios de conversión · Pipeline · Estado de leads · Datos en tiempo real desde 'opportunities'
+              Ratios de conversión · Pipeline · Estado de leads · <span className="text-indigo-400/80">{periodLabel.toUpperCase()}</span>
             </p>
           </div>
           <div className="w-12 h-12 bg-indigo-500/20 rounded-full flex items-center justify-center border border-indigo-500/30">
@@ -182,10 +193,10 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
                 Métricas Avanzadas
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <MetricCard label="Ticket Medio" value={`€${avgTicket.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={DollarSign} colorClass="bg-emerald-500" />
+              <MetricCard label="Tasa No-Show" value={`${noShowRate.toFixed(1)}%`} icon={XCircle} colorClass="bg-amber-500" highlightValue />
               <MetricCard label="Ventas Cerradas" value={salesCount} icon={CheckCircle} colorClass="bg-emerald-500" />
-              <MetricCard label="Intentos Fallidos" value={failedAttempts} icon={AlertCircle} colorClass="bg-amber-500" highlightValue />
-              <MetricCard label="Conv. Venta / Lead" value={`${totalSaleRate.toFixed(1)}%`} icon={TrendingUp} colorClass="bg-rose-500" />
-              <MetricCard label="Tasa Descarte" value={`${discardRate.toFixed(0)}%`} icon={XCircle} colorClass="bg-slate-500" />
+              <MetricCard label="Ingresos Proyectados" value={`€${projectedRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={TrendingUp} colorClass="bg-rose-500" />
             </div>
           </section>
 

@@ -57,7 +57,21 @@ export const Performance = () => {
     }).sort((a: any, b: any) => b.revenue - a.revenue).filter(u => u.oppCount > 0);
 
     if (selectedCloser) {
-        return <CloserDashboard closerName={selectedCloser} opportunities={safeOpps} onBack={() => setSelectedCloser(null)} />;
+        const { filters } = useStore.getState();
+        const periodLabels: Record<string, string> = {
+            all: 'Todo el tiempo',
+            today: 'Hoy',
+            yesterday: 'Ayer',
+            '7days': 'Últimos 7 días',
+            '15days': 'Últimos 15 días',
+            '30days': 'Últimos 30 días',
+            '3months': 'Últimos 3 meses',
+            '6months': 'Últimos 6 meses',
+            year: 'Último año',
+            custom: `${filters.startDate} - ${filters.endDate}`
+        };
+        const label = periodLabels[filters.period] || 'Periodo Seleccionado';
+        return <CloserDashboard closerName={selectedCloser} opportunities={safeOpps} onBack={() => setSelectedCloser(null)} periodLabel={label} />;
     }
 
     if (performanceData.length === 0) {

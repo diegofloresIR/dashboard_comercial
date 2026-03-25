@@ -131,7 +131,10 @@ export const Header = ({ onNewReport }: { onNewReport: () => void }) => {
                     className="bg-slate-50 dark:bg-slate-900 border-none rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner text-slate-700 dark:text-slate-200 cursor-pointer"
                 >
                     <option value="all">Todo el tiempo</option>
+                    <option value="today">Hoy</option>
+                    <option value="yesterday">Ayer</option>
                     <option value="7days">Últimos 7 días</option>
+                    <option value="15days">Últimos 15 días</option>
                     <option value="30days">Últimos 30 días</option>
                     <option value="3months">Últimos 3 meses</option>
                     <option value="6months">Últimos 6 meses</option>

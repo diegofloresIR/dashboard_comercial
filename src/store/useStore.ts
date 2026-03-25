@@ -97,8 +97,18 @@ export const useStore = create<AppState>((set, get) => ({
       case 'all':
         start = new Date(2000, 0, 1);
         break;
+      case 'today':
+        // Start and end are already today
+        break;
+      case 'yesterday':
+        start = subDays(end, 1);
+        end = subDays(end, 1);
+        break;
       case '7days':
         start = subDays(end, 7);
+        break;
+      case '15days':
+        start = subDays(end, 15);
         break;
       case '30days':
         start = subDays(end, 30);
