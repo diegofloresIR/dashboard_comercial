@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { ShieldCheck, UserCog, Mail, Calendar, Loader2 } from 'lucide-react';
+import { ShieldCheck, UserCog, Mail, Calendar, Loader2, Trash2, KeyRound } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -68,6 +68,63 @@ export function AdminUsers() {
         }
     };
 
+    const handleDeleteUser = async (userId: string, email: string) => {
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar permanentemente al usuario ${email}? Esta acción no se puede deshacer.`)) {
+            return;
+        }
+
+        setUpdatingId(userId);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+
+            const res = await fetch(`/api/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`
+                }
+            });
+
+            if (!res.ok) throw new Error('Error al eliminar usuario');
+
+            setUsers(users.filter(u => u.id !== userId));
+            alert('Usuario eliminado correctamente');
+        } catch (err) {
+            console.error(err);
+            alert('Error al eliminar usuario');
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
+    const handleResetPassword = async (userId: string, email: string) => {
+        if (!window.confirm(`¿Enviar correo de restablecimiento de contraseña a ${email}?`)) {
+            return;
+        }
+
+        setUpdatingId(userId);
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) return;
+
+            const res = await fetch(`/api/admin/users/${userId}/reset-password`, {
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${session.access_token}`
+                }
+            });
+
+            if (!res.ok) throw new Error('Error al enviar restablecimiento');
+
+            alert('Se ha enviado el correo de restablecimiento de contraseña.');
+        } catch (err) {
+            console.error(err);
+            alert('Error al enviar el correo de restablecimiento');
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
     const roles = [
         { value: 'pending', label: 'Pendiente (Bloqueado)' },
         { value: 'viewer', label: 'Lector (Visualización)' },
@@ -104,6 +161,7 @@ export function AdminUsers() {
                                 <th className="p-4 font-semibold text-slate-600 dark:text-slate-300">Usuario</th>
                                 <th className="p-4 font-semibold text-slate-600 dark:text-slate-300">Rol & Acceso</th>
                                 <th className="p-4 font-semibold text-slate-600 dark:text-slate-300">Fecha de Registro</th>
+                                <th className="p-4 font-semibold text-slate-600 dark:text-slate-300 text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -150,11 +208,31 @@ export function AdminUsers() {
                                             {format(new Date(user.created_at), "d MMM, yyyy", { locale: es })}
                                         </div>
                                     </td>
+                                    <td className="p-4">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <button
+                                                onClick={() => handleResetPassword(user.id, user.email)}
+                                                disabled={updatingId === user.id}
+                                                className="p-2 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 rounded-xl transition-all"
+                                                title="Restablecer Contraseña"
+                                            >
+                                                <KeyRound className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteUser(user.id, user.email)}
+                                                disabled={updatingId === user.id}
+                                                className="p-2 text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-900/30 rounded-xl transition-all"
+                                                title="Eliminar Usuario"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             ))}
                             {users.length === 0 && (
                                 <tr>
-                                    <td colSpan={3} className="p-8 text-center text-slate-500">
+                                    <td colSpan={4} className="p-8 text-center text-slate-500">
                                         No hay usuarios registrados.
                                     </td>
                                 </tr>

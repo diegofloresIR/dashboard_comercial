@@ -222,6 +222,46 @@ app.put("/api/admin/users/:id/role", requireAdmin, async (req, res) => {
   }
 });
 
+app.delete("/api/admin/users/:id", requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    // 1. Delete from Supabase Auth (Service Role)
+    const { error: authError } = await supabase.auth.admin.deleteUser(id);
+    if (authError) throw authError;
+
+    // 2. Delete from Profiles table
+    const { error: dbError } = await supabase.from('profiles').delete().eq('id', id);
+    if (dbError) throw dbError;
+
+    res.json({ success: true, message: "Usuario eliminado correctamente" });
+  } catch (error: any) {
+    console.error("Error deleting user:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post("/api/admin/users/:id/reset-password", requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    // 1. Get user email
+    const { data: profile, error: getError } = await supabase.from('profiles').select('email').eq('id', id).single();
+    if (getError || !profile) throw new Error("Usuario no encontrado");
+
+    // 2. Trigger password reset email from Supabase
+    // Note: resetPasswordForEmail sends the email automatically
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(profile.email, {
+      redirectTo: `${process.env.APP_URL || 'http://localhost:3000'}/reset-password`
+    });
+    
+    if (resetError) throw resetError;
+
+    res.json({ success: true, message: "Correo de restablecimiento enviado" });
+  } catch (error: any) {
+    console.error("Error resetting password:", error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // --- GHL Internal Integration & OAuth Routes ---
 
 app.get("/api/crm/status", async (req, res) => {
