@@ -89,6 +89,7 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
   const originStats = wonOpps.reduce((acc: any, o) => {
     const customFields = Array.isArray(o.raw?.customFields) ? o.raw.customFields : (Array.isArray(o.custom_fields) ? o.custom_fields : []);
     const originField = customFields.find((f: any) => 
+      String(f.id || "") === 'dQIKOJqcDR8uYOcoZGPt' ||
       String(f.name || "").toLowerCase().includes('origen') || 
       String(f.label || "").toLowerCase().includes('origen')
     );
