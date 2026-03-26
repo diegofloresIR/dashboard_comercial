@@ -84,6 +84,36 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
   const openValue = openOpps.reduce((acc, o) => acc + Number(o.value || 0), 0);
   const projectedRevenue = openValue * (totalSaleRate / 100);
 
+  // 5. Origen de la Venta (Solo para Pagos Completos)
+  const wonOpps = userOpps.filter(o => o.stage_id === STAGES.PAGO_COMPLETO);
+  const originStats = wonOpps.reduce((acc: any, o) => {
+    const customFields = Array.isArray(o.raw?.customFields) ? o.raw.customFields : (Array.isArray(o.custom_fields) ? o.custom_fields : []);
+    const originField = customFields.find((f: any) => 
+      String(f.name || "").toLowerCase().includes('origen') || 
+      String(f.label || "").toLowerCase().includes('origen')
+    );
+    
+    let origin = 'Otro';
+    if (originField) {
+      const val = String(originField.fieldValue || originField.value || "").toLowerCase();
+      if (val.includes('hotmart')) origin = 'Hotmart';
+      else if (val.includes('transferencia')) origin = 'Transferencia';
+      else if (val) origin = val.charAt(0).toUpperCase() + val.slice(1);
+    }
+
+    if (!acc[origin]) acc[origin] = { count: 0, revenue: 0 };
+    acc[origin].count += 1;
+    acc[origin].revenue += Number(o.value || 0);
+    return acc;
+  }, {});
+
+  const originData = Object.entries(originStats).map(([name, stats]: [string, any]) => ({
+    name,
+    count: stats.count,
+    revenue: stats.revenue,
+    percentage: salesCount > 0 ? (stats.count / salesCount) * 100 : 0
+  })).sort((a, b) => b.revenue - a.revenue);
+
   // Phase breakdown for table
   const phases = [
     { name: 'Pago completo', id: STAGES.PAGO_COMPLETO, color: 'bg-emerald-500' },
@@ -200,7 +230,42 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
             </div>
           </section>
 
-          {/* Section 5: Table Breakdown */}
+          {/* Section 5: Origen de las Ventas */}
+          <section>
+            <h2 className="text-xs font-black text-indigo-400 mb-4 flex items-center gap-2 uppercase tracking-widest">
+                <span className="w-5 h-5 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center text-[10px] border border-indigo-500/30">5</span>
+                Origen de las Ventas (Hotmart vs Transf.)
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {originData.length > 0 ? originData.map((item, idx) => (
+                <div key={idx} className="bg-slate-800/40 border border-slate-700/50 p-5 rounded-2xl relative overflow-hidden group">
+                  <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-10 blur-2xl ${item.name === 'Hotmart' ? 'bg-orange-500' : item.name === 'Transferencia' ? 'bg-blue-500' : 'bg-slate-500'}`} />
+                  <div className="relative z-10">
+                    <div className="flex justify-between items-start mb-4">
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${item.name === 'Hotmart' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : item.name === 'Transferencia' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-slate-500/20 text-slate-400 border border-slate-500/30'}`}>
+                        {item.name}
+                      </span>
+                      <span className="text-xs font-black text-slate-500">{item.percentage.toFixed(0)}%</span>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-3xl font-black text-white">€{item.revenue.toLocaleString()}</p>
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{item.count} Ventas cerradas</p>
+                    </div>
+                    <div className="mt-4 w-full h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full ${item.name === 'Hotmart' ? 'bg-orange-500' : item.name === 'Transferencia' ? 'bg-blue-500' : 'bg-slate-500'}`} style={{ width: `${item.percentage}%` }} />
+                    </div>
+                  </div>
+                </div>
+              )) : (
+                <div className="col-span-full py-10 bg-slate-800/20 rounded-2xl border border-dashed border-slate-700 flex flex-col items-center justify-center opacity-50">
+                  <AlertCircle className="w-8 h-8 text-slate-600 mb-2" />
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Sin datos de origen disponibles</p>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* Section 6: Table Breakdown */}
           <section className="pt-4">
             <div className="bg-slate-800/30 border border-slate-700/50 rounded-2xl overflow-hidden">
                 <table className="w-full text-left">
