@@ -865,8 +865,9 @@ app.get("/api/crm/sync", async (req, res) => {
         status: (opp.status || "open").toLowerCase(),
         value: opp.monetaryValue || opp.value || 0,
         currency: "EUR",
+        custom_fields: opp.customFields || opp.custom_fields || {},
         raw: opp,
-        created_at: createdAt, // We use GHL date as the primary date for dashboard filtering
+        created_at: createdAt,
         updated_at: updatedAt,
       };
     });
