@@ -100,7 +100,7 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
   const openValue = openOpps.reduce((acc, o) => acc + Number(o.value || 0), 0);
   const projectedRevenue = openValue * (totalSaleRate / 100);
 
-  // 5. Origen de la Venta (Solo para Pagos Completos)
+  // 5. Origen de las Ventas (Solo para Pagos Completos)
   const wonOpps = userOpps.filter(o => o.stage_id === STAGES.PAGO_COMPLETO);
   const originStats = wonOpps.reduce((acc: any, o) => {
     // Handle both array and object structures
@@ -108,17 +108,35 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
     let val = '';
 
     if (Array.isArray(rawCFs)) {
-      const field = rawCFs.find((f: any) => 
-        String(f.id || f.fieldId || "") === 'dQIKOJqcDR8uYOcoZGPt' ||
-        String(f.name || f.label || "").toLowerCase().includes('origen')
-      );
+      // 1. Specific Search by ID or Label
+      const field = rawCFs.find((f: any) => {
+        const id = String(f.id || f.fieldId || "").toLowerCase();
+        const label = String(f.name || f.label || "").toLowerCase();
+        return id === 'dqikojqcdr8uyocozgpt' || label.includes('origen');
+      });
+
       if (field) {
         let rv = field.fieldValue || field.value || field.fieldValueString;
+        if (typeof rv === 'string' && rv.startsWith('[') && rv.endsWith(']')) {
+          try { const p = JSON.parse(rv); if (Array.isArray(p)) rv = p; } catch(e) {}
+        }
         if (Array.isArray(rv) && rv.length > 0) rv = rv[0];
         val = String(rv || "").toLowerCase().trim();
       }
+
+      // 2. Fail-Safe: Search ALL fields for keywords "hotmart" / "transferencia"
+      if (!val || val === 'none' || val === 'null' || val === 'otro') {
+        const keywordField = rawCFs.find((f: any) => {
+          const v = String(f.fieldValue || f.value || f.fieldValueString || "").toLowerCase();
+          return v.includes('hotmart') || v.includes('transferencia');
+        });
+        if (keywordField) {
+          let rv = keywordField.fieldValue || keywordField.value || keywordField.fieldValueString;
+          if (Array.isArray(rv) && rv.length > 0) rv = rv[0];
+          val = String(rv || "").toLowerCase().trim();
+        }
+      }
     } else if (rawCFs && typeof rawCFs === 'object') {
-      // If it's a flat object { "FIELD_ID": "VALUE" }
       const key = Object.keys(rawCFs).find(k => k === 'dQIKOJqcDR8uYOcoZGPt' || k.toLowerCase().includes('origen'));
       if (key) {
         val = String((rawCFs as any)[key] || "").toLowerCase().trim();
@@ -126,7 +144,7 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
     }
     
     let origin = 'Otro';
-    if (val && val !== 'none' && val !== 'null') {
+    if (val && !['none', 'null', 'undefined', 'otro'].includes(val)) {
       if (val.includes('hotmart')) origin = 'Hotmart';
       else if (val.includes('transferencia')) origin = 'Transferencia';
       else origin = val.charAt(0).toUpperCase() + val.slice(1);
