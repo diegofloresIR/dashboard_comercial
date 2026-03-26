@@ -9,7 +9,10 @@ import {
   Target, 
   DollarSign, 
   AlertCircle,
-  XCircle
+  XCircle,
+  FileText,
+  Mail,
+  X
 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -38,6 +41,8 @@ const STAGES = {
 };
 
 export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, opportunities, onBack, periodLabel = "Periodo Seleccionado" }) => {
+  const [selectedPhase, setSelectedPhase] = React.useState<any | null>(null);
+  
   // Filter opportunities for this closer
   const userOpps = opportunities.filter(o => {
     const rawCFs = o.custom_fields || o.raw?.customFields;
@@ -205,8 +210,110 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
     </div>
   );
 
+  const OpportunityModal = ({ phase, onClose }: { phase: any, onClose: () => void }) => {
+    const phaseOpps = phase.ids 
+      ? userOpps.filter(o => phase.ids!.includes(o.stage_id))
+      : userOpps.filter(o => o.stage_id === phase.id);
+
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
+        <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[85vh] rounded-3xl overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
+          <div className="p-6 border-b border-slate-800 bg-[#0f172a] flex justify-between items-center group">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl ${phase.color} bg-opacity-20 flex items-center justify-center border ${phase.color.replace('bg-', 'border-')}/30`}>
+                <FileText className={`w-6 h-6 ${phase.color.replace('bg-', 'text-')}`} />
+              </div>
+              <div>
+                <h3 className="text-xl font-black text-white tracking-widest uppercase">{phase.name}</h3>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
+                  {phaseOpps.length} Oportunidades encontradas para {closerName}
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="p-2 hover:bg-slate-800 rounded-full transition-colors text-slate-400 hover:text-white"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-auto p-6 bg-[#0a0f1e]">
+            {phaseOpps.length > 0 ? (
+              <div className="space-y-4">
+                {phaseOpps.map((o: any, idx: number) => {
+                  const contact = o.contact || o.raw?.contact || {};
+                  const notes = o.raw?.description || 'Sin notas del closer registradas.';
+                  
+                  return (
+                    <div key={idx} className="bg-slate-800/40 border border-slate-700/50 p-5 rounded-2xl group hover:border-indigo-500/50 transition-all duration-300">
+                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
+                        <div className="space-y-1">
+                          <h4 className="text-lg font-black text-white group-hover:text-amber-400 transition-colors">{o.name}</h4>
+                          <div className="flex flex-wrap gap-3">
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400">
+                              <Users className="w-3.5 h-3.5 text-indigo-400" />
+                              {contact.name || 'S/N'}
+                            </div>
+                            {contact.email && (
+                              <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-indigo-400 transition-colors">
+                                <Mail className="w-3.5 h-3.5" />
+                                {contact.email}
+                              </a>
+                            )}
+                            {contact.phone && (
+                              <a href={`tel:${contact.phone}`} className="flex items-center gap-1.5 text-xs font-bold text-slate-400 hover:text-indigo-400 transition-colors">
+                                <Phone className="w-3.5 h-3.5" />
+                                {contact.phone}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg font-black text-emerald-400">€{Number(o.value || 0).toLocaleString()}</span>
+                          <span className="px-2 py-0.5 rounded-md bg-slate-700 text-[10px] font-bold text-slate-400 uppercase tracking-widest">{o.status === 'won' ? 'PAGADO' : 'ABIERTO'}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-slate-900/50 border border-slate-700/30 p-4 rounded-xl relative">
+                        <p className="text-[10px] font-black text-indigo-400 mb-2 uppercase tracking-widest flex items-center gap-1.5">
+                          <AlertCircle className="w-3 h-3" />
+                          Notas del Closer
+                        </p>
+                        <p className="text-sm font-medium text-slate-300 whitespace-pre-wrap leading-relaxed italic">
+                          "{notes}"
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="h-64 flex flex-col items-center justify-center opacity-50">
+                <AlertCircle className="w-12 h-12 text-slate-600 mb-4" />
+                <p className="text-sm font-black uppercase tracking-widest text-slate-500">No hay oportunidades en este estado</p>
+              </div>
+            )}
+          </div>
+          
+          <div className="p-4 bg-[#0f172a] border-t border-slate-800 text-center">
+            <button 
+              onClick={onClose}
+              className="px-8 py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all border border-slate-700"
+            >
+              Cerrar Listado
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500 overflow-hidden pb-12">
+      {selectedPhase && (
+        <OpportunityModal phase={selectedPhase} onClose={() => setSelectedPhase(null)} />
+      )}
       <button 
         onClick={onBack}
         className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-bold text-sm mb-4 group"
@@ -335,18 +442,22 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
                     </thead>
                     <tbody className="divide-y divide-slate-700/50">
                         {tableData.map((row, idx) => (
-                            <tr key={idx} className="hover:bg-slate-700/20 transition-colors">
+                            <tr 
+                                key={idx} 
+                                onClick={() => setSelectedPhase(row)}
+                                className="hover:bg-slate-700/40 transition-all cursor-pointer group active:scale-[0.99]"
+                            >
                                 <td className="px-6 py-3 text-sm font-bold text-slate-300">
                                     <div className="flex items-center gap-2">
-                                        <div className={`w-2 h-2 rounded-full ${row.color}`} />
-                                        {row.name}
+                                        <div className={`w-2 h-2 rounded-full ${row.color} shadow-[0_0_8px] shadow-current`} />
+                                        <span className="group-hover:text-white transition-colors capitalize">{row.name}</span>
                                     </div>
                                 </td>
-                                <td className="px-6 py-3 text-center text-sm font-black text-slate-300">{row.count}</td>
+                                <td className="px-6 py-3 text-center text-sm font-black text-slate-300 group-hover:text-amber-400 transition-colors">{row.count}</td>
                                 <td className="px-6 py-3 text-center text-xs font-bold text-slate-400">{row.percentage.toFixed(1)}%</td>
                                 <td className="px-6 py-3 min-w-[150px]">
-                                    <div className="w-full h-2 bg-slate-700/50 rounded-full overflow-hidden">
-                                        <div className={`h-full ${row.color} rounded-full`} style={{ width: `${row.percentage}%` }} />
+                                    <div className="w-full h-2 bg-slate-700/50 rounded-full overflow-hidden border border-slate-800">
+                                        <div className={`h-full ${row.color} rounded-full transition-all duration-1000 group-hover:brightness-125`} style={{ width: `${row.percentage}%` }} />
                                     </div>
                                 </td>
                             </tr>
