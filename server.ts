@@ -115,11 +115,11 @@ async function fetchLatestNote(locationId: string, accessToken: string, contactI
 
     const response = await axios.get(url, { headers });
 
-    // V1 and V2 have slightly different response structures for notes
+    // GHL V2 gives both 'body' (HTML) and 'bodyText' (Plain)
     const notes = isV1 ? (response.data.notes || []) : (response.data.notes || []);
     if (notes.length > 0) {
-      // Return the body of the most recent note
-      return notes[0].body || null;
+      // Prioritize bodyText (clean text) over body (HTML)
+      return notes[0].bodyText || notes[0].body || null;
     }
     return null;
   } catch (err: any) {
@@ -919,7 +919,7 @@ app.get("/api/crm/sync", async (req, res) => {
         value: opp.monetaryValue || opp.value || 0,
         currency: "EUR",
         custom_fields: opp.customFields || opp.custom_fields || {},
-        raw: opp,
+        raw: { ...opp, lastNoteSynced: opp.lastNote || null },
         last_note: opp.lastNote || null,
         created_at: createdAt,
         updated_at: updatedAt,

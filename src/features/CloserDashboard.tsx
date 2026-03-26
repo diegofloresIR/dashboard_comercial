@@ -243,7 +243,7 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
               <div className="space-y-4">
                 {phaseOpps.map((o: any, idx: number) => {
                   const contact = o.contact || o.raw?.contact || {};
-                  const notes = o.last_note || o.raw?.lastNote || o.raw?.description || 'Sin notas del closer registradas.';
+                  const notes = o.raw?.lastNoteSynced || o.last_note || o.raw?.description || 'Sin notas del closer registradas.';
                   
                   return (
                     <div key={idx} className="bg-slate-800/40 border border-slate-700/50 p-5 rounded-2xl group hover:border-indigo-500/50 transition-all duration-300">
