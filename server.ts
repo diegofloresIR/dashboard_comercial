@@ -96,6 +96,40 @@ async function getValidConnection(locationId: string) {
   return connection;
 }
 
+// Helper to fetch the latest note for a contact from GHL V1 or V2
+async function fetchLatestNote(locationId: string, accessToken: string, contactId: string, isV1: boolean, baseURL: string) {
+  if (!contactId) return null;
+  try {
+    const url = isV1 
+      ? `${baseURL}/contacts/${contactId}/notes` 
+      : `${baseURL}/contacts/${contactId}/notes`;
+    
+    const headers: any = {
+      'Authorization': `Bearer ${accessToken}`,
+      'Accept': 'application/json'
+    };
+
+    if (!isV1) {
+      headers['Version'] = '2021-07-28';
+    }
+
+    const response = await axios.get(url, { headers });
+
+    // V1 and V2 have slightly different response structures for notes
+    const notes = isV1 ? (response.data.notes || []) : (response.data.notes || []);
+    if (notes.length > 0) {
+      // Return the body of the most recent note
+      return notes[0].body || null;
+    }
+    return null;
+  } catch (err: any) {
+    if (err.response?.status !== 404) {
+      console.warn(`Failed to fetch notes for contact ${contactId}:`, err.response?.data || err.message);
+    }
+    return null;
+  }
+}
+
 // Expose public config to the frontend at runtime
 app.get("/api/config", (req, res) => {
   res.json({
@@ -831,7 +865,26 @@ app.get("/api/crm/sync", async (req, res) => {
       if (uErr) console.error("Error ensuring users:", uErr.message);
     }
 
-    // 2. Upsert opportunities
+    // 2. Fetch latest notes for opportunities to show closer status
+    // We do this in small batches to avoid hitting rate limits
+    console.log(`Fetching notes for ${allOpps.length} opportunities...`);
+    // 'connection' is already defined at line 622 in this scope
+    if (!connection) throw new Error("Connection not found for notes sync");
+
+    const batchSize = 10;
+    for (let i = 0; i < allOpps.length; i += batchSize) {
+      const batch = allOpps.slice(i, i + batchSize);
+      await Promise.all(batch.map(async (opp) => {
+        const contactId = opp.contactId || opp.contact?.id;
+        if (contactId) {
+          const note = await fetchLatestNote(locationId as string, connection.access_token, contactId, isV1, baseURL);
+          if (note) opp.lastNote = note;
+        }
+      }));
+      // Small sleep between batches to be nice to GHL
+      if (allOpps.length > batchSize) await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
     const upsertData = allOpps.map(opp => {
       let createdAtDate = new Date();
       if (opp.createdAt) {
@@ -867,6 +920,7 @@ app.get("/api/crm/sync", async (req, res) => {
         currency: "EUR",
         custom_fields: opp.customFields || opp.custom_fields || {},
         raw: opp,
+        last_note: opp.lastNote || null,
         created_at: createdAt,
         updated_at: updatedAt,
       };
