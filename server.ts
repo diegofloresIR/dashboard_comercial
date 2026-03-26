@@ -1159,22 +1159,33 @@ app.get("/api/crm/closers", async (req, res) => {
 
     const uniqueClosers = new Set<string>();
     (data || []).forEach(o => {
-      const customFields = o.raw?.customFields || o.custom_fields;
-      if (customFields && Array.isArray(customFields)) {
-        const closerField = customFields.find((f: any) =>
-          String(f.id || "") === 'DPEKghcOYLZADdLcTR8Q' ||
+      const rawCFs = o.custom_fields || o.raw?.customFields;
+      let val = '';
+
+      if (Array.isArray(rawCFs)) {
+        const closerField = rawCFs.find((f: any) =>
+          String(f.id || f.fieldId || "") === 'DPEKghcOYLZADdLcTR8Q' ||
           String(f.key || "").toLowerCase().includes('closer') ||
-          String(f.name || "").toLowerCase().includes('closer') ||
+          String(f.name || f.label || "").toLowerCase().includes('closer') ||
           String(f.id || "").toLowerCase().includes('closer')
         );
         if (closerField) {
-          let rawVal = closerField.fieldValue || closerField.fieldValueString || closerField.field_value || closerField.value;
-          if (Array.isArray(rawVal) && rawVal.length > 0) rawVal = rawVal[0];
-          const val = String(rawVal || "").trim();
-          if (val && val.toLowerCase() !== 'none' && val.toLowerCase() !== 'null') {
-            uniqueClosers.add(val);
-          }
+          let rv = closerField.fieldValue || closerField.fieldValueString || closerField.field_value || closerField.value;
+          if (Array.isArray(rv) && rv.length > 0) rv = rv[0];
+          val = String(rv || "").trim();
         }
+      } else if (rawCFs && typeof rawCFs === 'object') {
+        const key = Object.keys(rawCFs).find(k => 
+          k === 'DPEKghcOYLZADdLcTR8Q' || 
+          k.toLowerCase().includes('closer')
+        );
+        if (key) {
+          val = String((rawCFs as any)[key] || "").trim();
+        }
+      }
+
+      if (val && val.toLowerCase() !== 'none' && val.toLowerCase() !== 'null') {
+        uniqueClosers.add(val);
       }
     });
 
