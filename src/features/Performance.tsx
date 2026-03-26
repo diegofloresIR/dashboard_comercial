@@ -30,6 +30,7 @@ export const Performance = () => {
             } else if (rawCFs && typeof rawCFs === 'object') {
                 const key = Object.keys(rawCFs).find(k => 
                     k === 'DPEKghcOYLZADdLcTR8Q' || 
+                    k.toLowerCase().includes('closer') ||
                     k.toLowerCase().includes('closer')
                 );
                 if (key) {
@@ -37,9 +38,15 @@ export const Performance = () => {
                 }
             }
             
-            if (!val) return false;
-            return val === closerName.toLowerCase().trim() || closerName.toLowerCase().trim().includes(val);
+            if (!val || val === 'none' || val === 'null') return false;
+            const cName = closerName.toLowerCase().trim();
+            return val === cName || cName.includes(val) || val.includes(cName);
         };
+
+        // DIAGNOSTIC LOG (Only for the first 5 opps to avoid spam)
+        if (safeOpps.length > 0) {
+            console.log(`Checking closer match for ${closerName}`);
+        }
 
         const userOpps = safeOpps.filter(isCloser);
         const wonOpps = userOpps.filter((o: any) => o.status === 'won');

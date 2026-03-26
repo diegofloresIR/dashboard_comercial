@@ -26,14 +26,16 @@ export const Header = ({ onNewReport }: { onNewReport: () => void }) => {
     const [syncing, setSyncing] = React.useState(false);
 
     const getActiveTabName = () => {
-        const path = window.location.pathname;
+        const path = window.location.pathname.toLowerCase();
+        if (path.endsWith('/settings')) return 'Ajustes de Integración';
         if (path.includes('performance')) return 'Rendimiento de Closers';
         if (path.includes('pipeline')) return 'Gestión de Pipeline';
         if (path.includes('funnel')) return 'Análisis de Funnel';
         if (path.includes('targets')) return 'Objetivos de Ventas';
         if (path.includes('copilot')) return 'Asistente IA Copilot';
-        if (path.includes('settings')) return 'Ajustes';
-        return 'Resumen Ejecutivo';
+        if (path.includes('admin/users')) return 'Gestión de Usuarios';
+        if (path.includes('overview')) return 'Resumen Ejecutivo';
+        return 'Dashboard de Ventas';
     };
 
     const handleSync = async (isFull = false) => {
