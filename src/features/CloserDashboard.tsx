@@ -46,7 +46,9 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
     if (Array.isArray(rawCFs)) {
       const field = rawCFs.find((f: any) => 
         String(f.id || f.fieldId || "") === 'DPEKghcOYLZADdLcTR8Q' ||
-        String(f.name || f.label || "").toLowerCase().includes('closer')
+        String(f.key || "").toLowerCase().includes('closer') ||
+        String(f.name || f.label || "").toLowerCase().includes('closer') ||
+        String(f.id || "").toLowerCase().includes('closer')
       );
       if (field) {
         let rv = field.fieldValue || field.value || field.fieldValueString;
@@ -54,13 +56,16 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
         val = String(rv || "").toLowerCase().trim();
       }
     } else if (rawCFs && typeof rawCFs === 'object') {
-      const key = Object.keys(rawCFs).find(k => k === 'DPEKghcOYLZADdLcTR8Q' || k.toLowerCase().includes('closer'));
+      const key = Object.keys(rawCFs).find(k => 
+        k === 'DPEKghcOYLZADdLcTR8Q' || 
+        k.toLowerCase().includes('closer')
+      );
       if (key) {
         val = String((rawCFs as any)[key] || "").toLowerCase().trim();
       }
     }
     
-    return val === closerName.toLowerCase().trim();
+    return val === closerName.toLowerCase().trim() || (val && closerName.toLowerCase().trim().includes(val));
   });
 
   // 1. Volumen de Leads
