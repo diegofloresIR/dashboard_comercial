@@ -98,8 +98,10 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
   const totalLeads = userOpps.length;
   const contactedSet = userOpps.filter(o => ![STAGES.NUEVO, STAGES.INTENTO, STAGES.SLA].includes(o.stage_id));
   const contactedCount = contactedSet.length;
-  const appointmentsCount = userOpps.filter(o => o.stage_id === STAGES.CITA).length;
-  const salesCount = userOpps.filter(o => o.stage_id === STAGES.PAGO_COMPLETO).length;
+  const appointmentsSet = userOpps.filter(o => o.stage_id === STAGES.CITA);
+  const appointmentsCount = appointmentsSet.length;
+  const salesSet = userOpps.filter(o => o.stage_id === STAGES.PAGO_COMPLETO);
+  const salesCount = salesSet.length;
 
   // 2. Ratios
   const contactRate = totalLeads > 0 ? (contactedCount / totalLeads) * 100 : 0;
@@ -107,10 +109,13 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
   const totalSaleRate = totalLeads > 0 ? (salesCount / totalLeads) * 100 : 0;
 
   // 3. Estado del Pipeline
-  const closeFollowUp = userOpps.filter(o => o.stage_id === STAGES.SEGUIM_CERCANO).length;
-  const longFollowUp = userOpps.filter(o => o.stage_id === STAGES.SEGUIM_LEJANO).length;
-  const discardedCount = userOpps.filter(o => [STAGES.DESCARTADO, STAGES.NO_CUALIFICA].includes(o.stage_id)).length;
-  const totalRevenue = userOpps.filter(o => o.stage_id === STAGES.PAGO_COMPLETO).reduce((acc, o) => acc + Number(o.value || 0), 0);
+  const closeFollowUpSet = userOpps.filter(o => o.stage_id === STAGES.SEGUIM_CERCANO);
+  const closeFollowUp = closeFollowUpSet.length;
+  const longFollowUpSet = userOpps.filter(o => o.stage_id === STAGES.SEGUIM_LEJANO);
+  const longFollowUp = longFollowUpSet.length;
+  const discardedSet = userOpps.filter(o => [STAGES.DESCARTADO, STAGES.NO_CUALIFICA].includes(o.stage_id));
+  const discardedCount = discardedSet.length;
+  const totalRevenue = salesSet.reduce((acc, o) => acc + Number(o.value || 0), 0);
 
   // 4. Métricas Avanzadas
   const failedAttempts = userOpps.filter(o => [STAGES.INTENTO, STAGES.SLA].includes(o.stage_id)).length;
@@ -216,8 +221,13 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
     return { ...p, count, percentage };
   });
 
-  const MetricCard = ({ label, value, sublabel, icon: Icon, colorClass, highlightValue }: any) => (
-    <div className="bg-slate-800/50 border border-slate-700/50 p-4 rounded-xl flex items-center gap-4">
+  const MetricCard = ({ label, value, sublabel, icon: Icon, colorClass, highlightValue, onClick }: any) => (
+    <div 
+      onClick={onClick}
+      className={`bg-slate-800/50 border border-slate-700/50 p-4 rounded-xl flex items-center gap-4 transition-all duration-300 ${
+        onClick ? 'cursor-pointer hover:border-indigo-500/50 hover:bg-slate-800/80 active:scale-[0.98]' : ''
+      }`}
+    >
       <div className={`p-3 rounded-lg ${colorClass} bg-opacity-10`}>
         <Icon className={`w-5 h-5 ${colorClass.replace('bg-', 'text-')}`} />
       </div>
@@ -232,20 +242,23 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
   );
 
   const OpportunityModal = ({ phase, onClose }: { phase: any, onClose: () => void }) => {
-    const phaseOpps = phase.ids 
+    // phase can be a 'p' from phases table OR a custom object from MetricCard
+    const title = phase.name || phase.title;
+    const color = phase.color || 'bg-indigo-500';
+    const phaseOpps = phase.apps || (phase.ids 
       ? userOpps.filter(o => phase.ids!.includes(o.stage_id))
-      : userOpps.filter(o => o.stage_id === phase.id);
+      : userOpps.filter(o => o.stage_id === phase.id));
 
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-300">
         <div className="bg-slate-900 border border-slate-700 w-full max-w-4xl max-h-[85vh] rounded-3xl overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
           <div className="p-6 border-b border-slate-800 bg-[#0f172a] flex justify-between items-center group">
             <div className="flex items-center gap-3">
-              <div className={`w-10 h-10 rounded-xl ${phase.color} bg-opacity-20 flex items-center justify-center border ${phase.color.replace('bg-', 'border-')}/30`}>
-                <FileText className={`w-6 h-6 ${phase.color.replace('bg-', 'text-')}`} />
+              <div className={`w-10 h-10 rounded-xl ${color} bg-opacity-20 flex items-center justify-center border ${color.replace('bg-', 'border-')}/30`}>
+                <FileText className={`w-6 h-6 ${color.replace('bg-', 'text-')}`} />
               </div>
               <div>
-                <h3 className="text-xl font-black text-white tracking-widest uppercase">{phase.name}</h3>
+                <h3 className="text-xl font-black text-white tracking-widest uppercase">{title}</h3>
                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
                   {phaseOpps.length} Oportunidades encontradas para {closerName}
                 </p>
@@ -375,10 +388,35 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
                 Volumen de Leads
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard label="Leads Totales" value={totalLeads} icon={Users} colorClass="bg-amber-400" highlightValue />
-              <MetricCard label="Contactados (acum)" value={contactedCount} icon={Phone} colorClass="bg-emerald-400" />
-              <MetricCard label="Citas Agendadas" value={appointmentsCount} icon={Calendar} colorClass="bg-blue-400" />
-              <MetricCard label="Ventas Cerradas" value={salesCount} icon={CheckCircle} colorClass="bg-rose-400" />
+              <MetricCard 
+                label="Leads Totales" 
+                value={totalLeads} 
+                icon={Users} 
+                colorClass="bg-amber-400" 
+                highlightValue 
+                onClick={() => setSelectedPhase({ title: 'Leads Totales', apps: userOpps, color: 'bg-amber-400' })}
+              />
+              <MetricCard 
+                label="Contactados (acum)" 
+                value={contactedCount} 
+                icon={Phone} 
+                colorClass="bg-emerald-400" 
+                onClick={() => setSelectedPhase({ title: 'Leads Contactados', apps: contactedSet, color: 'bg-emerald-400' })}
+              />
+              <MetricCard 
+                label="Citas Agendadas" 
+                value={appointmentsCount} 
+                icon={Calendar} 
+                colorClass="bg-blue-400" 
+                onClick={() => setSelectedPhase({ title: 'Citas Agendadas', apps: appointmentsSet, color: 'bg-blue-400' })}
+              />
+              <MetricCard 
+                label="Ventas Cerradas" 
+                value={salesCount} 
+                icon={CheckCircle} 
+                colorClass="bg-rose-400" 
+                onClick={() => setSelectedPhase({ title: 'Pago Completo', apps: salesSet, color: 'bg-rose-400' })}
+              />
             </div>
           </section>
 
@@ -402,9 +440,27 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
                 Estado del Pipeline
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <MetricCard label="Seguim. Cercano" value={closeFollowUp} icon={Target} colorClass="bg-emerald-500" />
-              <MetricCard label="Seguim. Lejano" value={longFollowUp} icon={Users} colorClass="bg-blue-500" />
-              <MetricCard label="Descartados / N.C." value={discardedCount} icon={XCircle} colorClass="bg-rose-500" />
+              <MetricCard 
+                label="Seguim. Cercano" 
+                value={closeFollowUp} 
+                icon={Target} 
+                colorClass="bg-emerald-500" 
+                onClick={() => setSelectedPhase({ title: 'Seguimiento Cercano', apps: closeFollowUpSet, color: 'bg-emerald-500' })}
+              />
+              <MetricCard 
+                label="Seguim. Lejano" 
+                value={longFollowUp} 
+                icon={Users} 
+                colorClass="bg-blue-500" 
+                onClick={() => setSelectedPhase({ title: 'Seguimiento Lejano', apps: longFollowUpSet, color: 'bg-blue-500' })}
+              />
+              <MetricCard 
+                label="Descartados / N.C." 
+                value={discardedCount} 
+                icon={XCircle} 
+                colorClass="bg-rose-500" 
+                onClick={() => setSelectedPhase({ title: 'Leads Descartados', apps: discardedSet, color: 'bg-rose-500' })}
+              />
               <MetricCard label="Ingresos Generados" value={`€${totalRevenue.toLocaleString()}`} icon={DollarSign} colorClass="bg-amber-500" highlightValue />
             </div>
           </section>
@@ -418,7 +474,13 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <MetricCard label="Ticket Medio" value={`€${avgTicket.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={DollarSign} colorClass="bg-emerald-500" />
               <MetricCard label="Tasa No-Show" value={`${noShowRate.toFixed(1)}%`} icon={XCircle} colorClass="bg-amber-500" highlightValue />
-              <MetricCard label="Ventas Cerradas" value={salesCount} icon={CheckCircle} colorClass="bg-emerald-500" />
+              <MetricCard 
+                label="Ventas Cerradas" 
+                value={salesCount} 
+                icon={CheckCircle} 
+                colorClass="bg-emerald-500" 
+                onClick={() => setSelectedPhase({ title: 'Resumen de Ventas', apps: salesSet, color: 'bg-emerald-500' })}
+              />
               <MetricCard label="Ingresos Proyectados" value={`€${projectedRevenue.toLocaleString(undefined, { maximumFractionDigits: 0 })}`} icon={TrendingUp} colorClass="bg-rose-500" />
             </div>
           </section>
@@ -430,26 +492,38 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
                 Origen de las Ventas (Hotmart vs Transf.)
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {originData.length > 0 ? originData.map((item, idx) => (
-                <div key={idx} className="bg-slate-800/40 border border-slate-700/50 p-5 rounded-2xl relative overflow-hidden group">
-                  <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-10 blur-2xl ${item.name === 'Hotmart' ? 'bg-orange-500' : item.name === 'Transferencia' ? 'bg-blue-500' : 'bg-slate-500'}`} />
-                  <div className="relative z-10">
-                    <div className="flex justify-between items-start mb-4">
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${item.name === 'Hotmart' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : item.name === 'Transferencia' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-slate-500/20 text-slate-400 border border-slate-500/30'}`}>
-                        {item.name}
-                      </span>
-                      <span className="text-xs font-black text-slate-500">{item.percentage.toFixed(0)}%</span>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-3xl font-black text-white">€{item.revenue.toLocaleString()}</p>
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{item.count} Ventas cerradas</p>
-                    </div>
-                    <div className="mt-4 w-full h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full ${item.name === 'Hotmart' ? 'bg-orange-500' : item.name === 'Transferencia' ? 'bg-blue-500' : 'bg-slate-500'}`} style={{ width: `${item.percentage}%` }} />
+              {originData.length > 0 ? originData.map((item, idx) => {
+                const itemOpps = salesSet.filter(o => {
+                  const val = String(o.raw?.source || o.raw?.customFields?.['dQIKOJqcDR8uYOcoZGPt'] || "").toLowerCase();
+                  return item.name === 'Hotmart' ? val.includes('hotmart') : 
+                         item.name === 'Transferencia' ? val.includes('transferencia') : false;
+                });
+
+                return (
+                  <div 
+                    key={idx} 
+                    onClick={() => setSelectedPhase({ title: `Ventas via ${item.name}`, apps: itemOpps, color: item.name === 'Hotmart' ? 'bg-orange-500' : 'bg-blue-500' })}
+                    className="bg-slate-800/40 border border-slate-700/50 p-5 rounded-2xl relative overflow-hidden group cursor-pointer hover:border-indigo-500/50 transition-all active:scale-[0.98]"
+                  >
+                    <div className={`absolute top-0 right-0 w-24 h-24 -mr-8 -mt-8 rounded-full opacity-10 blur-2xl ${item.name === 'Hotmart' ? 'bg-orange-500' : item.name === 'Transferencia' ? 'bg-blue-500' : 'bg-slate-500'}`} />
+                    <div className="relative z-10">
+                      <div className="flex justify-between items-start mb-4">
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${item.name === 'Hotmart' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : item.name === 'Transferencia' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-slate-500/20 text-slate-400 border border-slate-500/30'}`}>
+                          {item.name}
+                        </span>
+                        <span className="text-xs font-black text-slate-500">{item.percentage.toFixed(0)}%</span>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-3xl font-black text-white group-hover:text-indigo-400 transition-colors">€{item.revenue.toLocaleString()}</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">{item.count} Ventas cerradas</p>
+                      </div>
+                      <div className="mt-4 w-full h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
+                        <div className={`h-full rounded-full ${item.name === 'Hotmart' ? 'bg-orange-500' : item.name === 'Transferencia' ? 'bg-blue-500' : 'bg-slate-500'}`} style={{ width: `${item.percentage}%` }} />
+                      </div>
                     </div>
                   </div>
-                </div>
-              )) : (
+                );
+              }) : (
                 <div className="col-span-full py-10 bg-slate-800/20 rounded-2xl border border-dashed border-slate-700 flex flex-col items-center justify-center opacity-50">
                   <AlertCircle className="w-8 h-8 text-slate-600 mb-2" />
                   <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Sin datos de origen disponibles</p>
