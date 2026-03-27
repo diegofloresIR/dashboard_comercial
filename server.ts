@@ -945,7 +945,6 @@ app.get("/api/crm/sync", async (req, res) => {
         currency: "EUR",
         custom_fields: opp.customFields || opp.custom_fields || {},
         raw: { ...opp, lastNoteSynced: opp.lastNote || null },
-        last_note: opp.lastNote || null,
         created_at: createdAt,
         updated_at: updatedAt,
       };
