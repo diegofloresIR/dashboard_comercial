@@ -131,8 +131,8 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
   const openValue = openOpps.reduce((acc, o) => acc + Number(o.value || 0), 0);
   const projectedRevenue = openValue * (totalSaleRate / 100);
 
-  // 5. Origen de las Ventas (Basado en el status 'won' para coincidir con la tabla)
-  const wonOpps = userOpps.filter(o => o.status === 'won');
+  // 5. Origen de las Ventas (Basado en la etapa 'Pago Completo' para coherencia total)
+  const wonOpps = salesSet;
   const originStats = wonOpps.reduce((acc: any, o) => {
     // Handle both array and object structures
     const rawCFs = o.custom_fields || o.raw?.customFields;
@@ -143,7 +143,7 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
       const field = rawCFs.find((f: any) => {
         const id = String(f.id || f.fieldId || "").toLowerCase();
         const label = String(f.name || f.label || "").toLowerCase();
-        return id === 'dqikojqcdr8uyocozgpt' || label.includes('origen');
+        return id === 'dqikojqcdr8uyocozgpt' || label.includes('origen') || label.includes('fuente') || label.includes('procedencia');
       });
 
       if (field) {
@@ -168,7 +168,7 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
         }
       }
     } else if (rawCFs && typeof rawCFs === 'object') {
-      const key = Object.keys(rawCFs).find(k => k === 'dQIKOJqcDR8uYOcoZGPt' || k.toLowerCase().includes('origen'));
+      const key = Object.keys(rawCFs).find(k => k === 'dQIKOJqcDR8uYOcoZGPt' || k.toLowerCase().includes('origen') || k.toLowerCase().includes('fuente') || k.toLowerCase().includes('procedencia'));
       if (key) {
         val = String((rawCFs as any)[key] || "").toLowerCase().trim();
       }

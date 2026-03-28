@@ -479,44 +479,33 @@ app.get("/api/crm/oauth/callback", async (req, res) => {
 
 // --- Webhook Endpoint ---
 
-app.post("/api/webhooks/crm", async (req, res) => {
-  const signature = req.headers["x-webhook-secret"];
-  if (signature !== process.env.GHL_WEBHOOK_SECRET) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-
+// --- New GHL Native Webhook Endpoint ---
+app.post("/api/ghl/webhook", async (req, res) => {
   const payload = req.body;
-  const locationId = payload.locationId;
-  const opportunityId = payload.id || payload.opportunityId;
+  const locationId = payload.locationId || payload.location_id;
+  // GHL webhooks for opportunities usually send 'id' for the opportunity ID
+  const opportunityId = payload.id || payload.opportunityId || payload.opportunity_id;
+
+  console.log(`[Webhook] Received GHL event: ${payload.type || 'unknown'} for loc ${locationId}`);
 
   if (!locationId || !opportunityId) {
-    return res.status(400).json({ error: "Missing required fields" });
+    return res.status(200).json({ status: "ignored", message: "Missing locationId or opportunityId" });
   }
 
-  // Deduplication
-  const dedupeKey = crypto.createHash("sha256").update(JSON.stringify(payload) + payload.timestamp).digest("hex");
+  // Deduplication to avoid double processing
+  const dedupeKey = crypto.createHash("sha256").update(JSON.stringify(payload) + (payload.timestamp || Date.now())).digest("hex");
+  const { data: existing } = await supabase.from("webhook_events").select("id").eq("dedupe_key", dedupeKey).single();
+  
+  if (existing) return res.status(200).json({ status: "duplicate" });
 
-  const { data: existing } = await supabase
-    .from("webhook_events")
-    .select("id")
-    .eq("dedupe_key", dedupeKey)
-    .single();
+  await supabase.from("webhook_events").insert({ dedupe_key: dedupeKey, location_id: locationId, payload });
 
-  if (existing) {
-    return res.status(200).json({ message: "Duplicate event ignored" });
-  }
-
-  await supabase.from("webhook_events").insert({
-    dedupe_key: dedupeKey,
-    location_id: locationId,
-    payload,
-  });
-
-  // Trigger background refresh
-  refreshGHLData(locationId, opportunityId).catch(console.error);
+  // Refresh in background
+  refreshGHLData(locationId, opportunityId).catch(err => console.error("[Webhook Refresh Error]:", err.message));
 
   res.status(200).json({ status: "received" });
 });
+
 
 async function refreshGHLData(locationId: string, opportunityId: string) {
   const { data: connection } = await supabase
