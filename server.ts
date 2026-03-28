@@ -891,7 +891,7 @@ app.get("/api/crm/sync", async (req, res) => {
       throw new Error("Connection not found for notes sync");
     }
 
-    const batchSize = 10;
+    const batchSize = 2;
     let notesCount = 0;
     for (let i = 0; i < allOpps.length; i += batchSize) {
       const batch = allOpps.slice(i, i + batchSize);
@@ -905,8 +905,8 @@ app.get("/api/crm/sync", async (req, res) => {
           }
         }
       }));
-      // Small sleep between batches to be nice to GHL
-      if (allOpps.length > batchSize) await new Promise(resolve => setTimeout(resolve, 200));
+      // Slower delay for GHL Note sub-resource rate limit
+      if (allOpps.length > batchSize) await new Promise(resolve => setTimeout(resolve, 500));
     }
     logToSync(`✅ Sincronización de notas terminada: ${notesCount} notas aplicadas.`);
 
