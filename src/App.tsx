@@ -276,11 +276,13 @@ export default function App() {
                                 ]);
                                 alert('¡Reinicio completado! ' + data.count + ' oportunidades importadas. Los datos son ahora un espejo exacto de GHL.');
                               } else {
-                                alert(data.error || 'Sync failed');
+                                const errorMessage = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
+                                console.error("Sync Error Detailed:", data.error);
+                                alert(errorMessage || 'Sync failed');
                               }
-                            } catch (err) {
-                              console.error(err);
-                              alert('Error fatal al sincronizar.');
+                            } catch (err: any) {
+                              console.error("Fatal Sync Error:", err);
+                              alert('Error fatal al sincronizar: ' + err.message);
                             } finally {
                               const btn = document.getElementById('btn-reiniciar');
                               if (btn) btn.innerText = 'Reiniciar Base de Datos Local';
