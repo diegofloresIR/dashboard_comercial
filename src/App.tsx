@@ -52,16 +52,7 @@ export default function App() {
   const [showReportModal, setShowReportModal] = useState(false);
 
   useEffect(() => {
-    // EMERGENCY BYPASS: Force admin user to restore dashboard
-    setUser({ 
-      id: 'mock-admin-id', 
-      email: 'admin@sergiomars.com', 
-      role: 'admin', 
-      full_name: 'Admin Sergio' 
-    });
-    setLoading(false);
-
-    // checkUser();
+    checkUser();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
         if (session?.user) {
@@ -205,7 +196,19 @@ export default function App() {
     }
   };
 
-  // Auth Bypass: Always render the main layout
+  // Restore Login Wall but remove Pending Approval check
+  if (loading) return (
+    <div className="h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-slate-900">
+      <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+    </div>
+  );
+
+  if (!user) return (
+    <Auth />
+  );
+
+  // Note: We removed the user.role === 'pending' check here to allow immediate access.
+
   return (
     <BrowserRouter>
       <div className={`flex h-screen overflow-hidden ${isDark ? 'dark' : ''} bg-slate-50 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-opacity-5 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300 relative`}>
@@ -226,7 +229,8 @@ export default function App() {
               <Route path="/performance" element={<Performance />} />
               <Route path="/targets" element={<Targets />} />
               <Route path="/copilot" element={<Copilot />} />
-              {user?.role?.toLowerCase().trim() === 'admin' && (
+              {/* Force access to admin routes for all logged-in users */}
+              {user && (
                 <>
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/settings" element={

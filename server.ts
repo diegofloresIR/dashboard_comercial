@@ -168,19 +168,37 @@ app.get("/api/config", (req, res) => {
 
 // --- Admin User Management Routes ---
 
-// Middleware to verify Auth JWT (BYPASSED)
+// Middleware to verify Auth JWT (any logged in user)
 const requireAuth = async (req: any, res: any, next: any) => {
-  req.user = { id: 'mock-admin-id', email: 'admin@sergiomars.com', user_metadata: { full_name: 'Admin Sergio' } };
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: "Missing token" });
+
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) return res.status(401).json({ error: "Invalid token" });
+
+  req.user = user;
   next();
 };
 
 app.get("/api/auth/profile", requireAuth, async (req: any, res: any) => {
-  res.json({ id: 'mock-admin-id', email: 'admin@sergiomars.com', role: 'admin', full_name: 'Admin Sergio' });
+  try {
+    const user = req.user;
+    // Always return an admin profile for all logged-in users to bypass UI restrictions
+    res.json({ id: user.id, email: user.email, role: 'admin', full_name: user.user_metadata?.full_name });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Middleware to verify Admin JWT (BYPASSED)
 const requireAdmin = async (req: any, res: any, next: any) => {
-  req.user = { id: 'mock-admin-id', email: 'admin@sergiomars.com', user_metadata: { full_name: 'Admin Sergio' }, role: 'admin' };
+  const token = req.headers.authorization?.split(' ')[1];
+  if (!token) return res.status(401).json({ error: "Missing token" });
+
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) return res.status(401).json({ error: "Invalid token" });
+
+  req.user = user;
   next();
 };
 
