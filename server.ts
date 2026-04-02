@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import crypto from "crypto";
 import axios from "axios";
 import { createClient } from "@supabase/supabase-js";
-import { getCopilotResponse } from "./src/services/geminiService.js";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -1453,8 +1453,28 @@ app.post("/api/copilot/chat", requireAuth, async (req, res) => {
 
   if (!query) return res.status(400).json({ error: "Missing query" });
 
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) return res.status(503).json({ error: "GEMINI_API_KEY no configurada en el servidor" });
+
   try {
-    const result = await getCopilotResponse(query, context);
+    const ai = new GoogleGenAI({ apiKey });
+    const response = await ai.models.generateContent({
+      model: "gemini-2.0-flash",
+      contents: `User Query: ${query}\n\nContext Data: ${JSON.stringify(context)}`,
+      config: {
+        systemInstruction: `Eres un experto en operaciones de ventas para GoHighLevel.
+Analiza los datos de ventas y responde la pregunta del usuario.
+Responde en JSON con este formato exacto:
+{
+  "answer": "Explicación clara",
+  "drivers": ["Top 3 causas/factores"],
+  "recommendations": ["Pasos accionables"],
+  "metrics_referenced": ["Métricas usadas"]
+}`,
+        responseMimeType: "application/json",
+      },
+    });
+    const result = JSON.parse(response.text || "{}");
     res.json(result);
   } catch (error: any) {
     console.error("Copilot Error:", error);
