@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import crypto from "crypto";
 import axios from "axios";
 import { createClient } from "@supabase/supabase-js";
-import { getCopilotResponse } from "./src/services/geminiService";
+import { getCopilotResponse } from "./src/services/geminiService.js";
 
 dotenv.config();
 
