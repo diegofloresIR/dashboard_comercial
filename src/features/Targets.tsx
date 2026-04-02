@@ -4,7 +4,7 @@ import { Target, Edit2, Save, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 export const Targets = () => {
-    const { metrics, user } = useStore();
+    const { metrics, user, addToast } = useStore();
 
     const [targetRevenue, setTargetRevenue] = useState(500000);
     const [isEditing, setIsEditing] = useState(false);
@@ -47,7 +47,7 @@ export const Targets = () => {
                 setTargetRevenue(amount);
                 setIsEditing(false);
             } else {
-                alert("Error al guardar el objetivo. ¿Tienes permisos de Admin?");
+                addToast('Error al guardar el objetivo. ¿Tienes permisos de Admin?', 'error');
             }
         } catch (err) {
             console.error("Save error:", err);

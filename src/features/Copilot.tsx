@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../store/useStore';
+import { supabase } from '../lib/supabase';
 import { MessageSquare, RefreshCw, Send, CheckCircle2 } from 'lucide-react';
 
 export const Copilot = () => {
@@ -39,7 +40,7 @@ export const Copilot = () => {
         }]);
     };
 
-    const fakeAsk = (e: React.FormEvent) => {
+    const handleAsk = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim()) return;
 
@@ -48,14 +49,37 @@ export const Copilot = () => {
         setMessages(prev => [...prev, { role: 'user', content: userMsg, type: 'text' }]);
         setAsking(true);
 
-        setTimeout(() => {
+        try {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) throw new Error('No hay sesión activa');
+
+            const res = await fetch('/api/copilot/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${session.access_token}`
+                },
+                body: JSON.stringify({ query: userMsg, context: metrics })
+            });
+
+            if (!res.ok) throw new Error('Error al conectar con el asistente IA');
+
+            const data = await res.json();
+
+            let content = data.answer || data.text || 'Sin respuesta del asistente.';
+            if (data.drivers?.length) content += '\n\n**Factores clave:**\n' + data.drivers.map((d: string) => `• ${d}`).join('\n');
+            if (data.recommendations?.length) content += '\n\n**Recomendaciones:**\n' + data.recommendations.map((r: string) => `• ${r}`).join('\n');
+
+            setMessages(prev => [...prev, { role: 'assistant', content, type: 'text' }]);
+        } catch (err: any) {
             setMessages(prev => [...prev, {
                 role: 'assistant',
-                content: 'Basado en los datos actuales, el principal cuello de botella está en la etapa "Demo". Te recomiendo revisar las grabaciones de esas llamadas o implementar un seguimiento más agresivo post-demo.',
+                content: `Error: ${err.message}`,
                 type: 'text'
             }]);
+        } finally {
             setAsking(false);
-        }, 1500);
+        }
     };
 
     return (
@@ -156,7 +180,7 @@ export const Copilot = () => {
                 </div>
 
                 <div className="p-4 border-t border-slate-100 dark:border-slate-700 bg-white/50 dark:bg-slate-800/50">
-                    <form onSubmit={fakeAsk} className="flex gap-2">
+                    <form onSubmit={handleAsk} className="flex gap-2">
                         <input
                             type="text"
                             value={input}

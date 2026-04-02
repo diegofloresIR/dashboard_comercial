@@ -973,7 +973,6 @@ app.get("/api/metrics/overview", async (req, res) => {
   const { locationId, startDate, endDate, pipelineId, userId, source } = req.query;
 
   try {
-    console.log("MARKER 0: Starting /api/metrics/overview");
     let query = supabase
       .from("opportunities")
       .select("*")
@@ -986,7 +985,6 @@ app.get("/api/metrics/overview", async (req, res) => {
       query = query.eq("pipeline_id", pipelineId);
     }
 
-    console.log("MARKER 1: Built query");
 
     let rawOpps: any[] = [];
     try {
@@ -1001,19 +999,12 @@ app.get("/api/metrics/overview", async (req, res) => {
       return res.status(503).json({ error: 'DB_ERROR', message: 'Error al conectar con la base de datos.' });
     }
 
-    console.log("MARKER 2: Checked rawOpps length");
 
     let baseOpps = rawOpps;
 
-    console.log("MARKER 3: baseOpps ready");
 
-    // Inject mock source based on ID
-    let opps = baseOpps.map(o => ({
-      ...o,
-      source: o.source || ((o.id || "").toString().charCodeAt(0) % 2 === 0 ? "vsl" : "webinar")
-    }));
+    let opps = baseOpps;
 
-    console.log("MARKER 4: Mapped opps");
 
     // Filter by source if requested
     if (source && source !== 'all') {
@@ -1320,11 +1311,7 @@ app.get("/api/crm/opportunities", async (req, res) => {
 
     let baseOpps = rawOpps;
 
-    // Inject source based on ID
-    let opps = baseOpps.map(o => ({
-      ...o,
-      source: o.source || ((o.id || "").toString().charCodeAt(0) % 2 === 0 ? "vsl" : "webinar")
-    }));
+    let opps = baseOpps;
 
     // Filter by source if requested
     if (source && source !== 'all') {

@@ -17,6 +17,7 @@ import {
 // Components
 import { Sidebar } from './components/ui/Sidebar';
 import { Header } from './components/ui/Header';
+import { Toaster } from './components/ui/Toaster';
 
 // Features
 import { Overview } from './features/Overview';
@@ -47,7 +48,8 @@ export default function App() {
     fetchMetadata,
     fetchMetrics,
     fetchOpportunities,
-    filters
+    filters,
+    addToast
   } = useStore();
 
   const [loading, setLoading] = useState(true);
@@ -134,8 +136,8 @@ export default function App() {
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.type === 'GHL_AUTH_SUCCESS') {
-        fetchConnection(); // Refresh connection state immediately
-        alert('Integración completada con éxito. Los datos se sincronizarán en breve.');
+        fetchConnection();
+        addToast('Integración completada con éxito. Los datos se sincronizarán en breve.', 'success');
       }
     };
     window.addEventListener('message', handleMessage);
@@ -229,8 +231,7 @@ export default function App() {
               <Route path="/performance" element={<Performance />} />
               <Route path="/targets" element={<Targets />} />
               <Route path="/copilot" element={<Copilot />} />
-              {/* Force access to admin routes for all logged-in users */}
-              {user && (
+              {user?.role === 'admin' && (
                 <>
                   <Route path="/admin/users" element={<AdminUsers />} />
                   <Route path="/settings" element={
@@ -262,7 +263,7 @@ export default function App() {
 
                       <button
                         onClick={async () => {
-                          if (!useStore.getState().connection) return alert('No hay conexión activa.');
+                          if (!useStore.getState().connection) return addToast('No hay conexión activa con GoHighLevel.', 'error');
                           if (confirm('¿Estás seguro de que quieres reiniciar los datos? Esto borrará los registros actuales y los traerá frescos de GHL.')) {
                             try {
                               const btn = document.getElementById('btn-reiniciar');
@@ -278,15 +279,15 @@ export default function App() {
                                   useStore.getState().fetchMetadata(),
                                   useStore.getState().fetchOpportunities()
                                 ]);
-                                alert('¡Reinicio completado! ' + data.count + ' oportunidades importadas. Los datos son ahora un espejo exacto de GHL.');
+                                addToast(`Reinicio completado. ${data.count} oportunidades importadas.`, 'success');
                               } else {
                                 const errorMessage = typeof data.error === 'string' ? data.error : JSON.stringify(data.error);
                                 console.error("Sync Error Detailed:", data.error);
-                                alert(errorMessage || 'Sync failed');
+                                addToast(errorMessage || 'Error en la sincronización', 'error');
                               }
                             } catch (err: any) {
                               console.error("Fatal Sync Error:", err);
-                              alert('Error fatal al sincronizar: ' + err.message);
+                              addToast('Error fatal al sincronizar: ' + err.message, 'error');
                             } finally {
                               const btn = document.getElementById('btn-reiniciar');
                               if (btn) btn.innerText = 'Reiniciar Base de Datos Local';
@@ -327,7 +328,7 @@ export default function App() {
                     <button onClick={() => setShowReportModal(false)} className="flex-1 px-4 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all">
                       Cancelar
                     </button>
-                    <button onClick={() => { alert('¡Informe enviado!'); setShowReportModal(false); }} className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 transition-all">
+                    <button onClick={() => { addToast('Informe enviado correctamente', 'success'); setShowReportModal(false); }} className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 transition-all">
                       Enviar
                     </button>
                   </div>
@@ -336,6 +337,7 @@ export default function App() {
             </div>
           )
         }
+      <Toaster />
       </div >
     </BrowserRouter >
   );

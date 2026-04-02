@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { useStore } from '../store/useStore';
 import { ShieldCheck, UserCog, Mail, Calendar, Loader2, Trash2, KeyRound } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -13,6 +14,7 @@ interface Profile {
 }
 
 export function AdminUsers() {
+    const { addToast } = useStore();
     const [users, setUsers] = useState<Profile[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -36,7 +38,7 @@ export function AdminUsers() {
             setUsers(data);
         } catch (err) {
             console.error(err);
-            alert('Error fetching users. Are you an admin?');
+            addToast('Error cargando usuarios. ¿Tienes permisos de administrador?', 'error');
         } finally {
             setLoading(false);
         }
@@ -62,7 +64,7 @@ export function AdminUsers() {
             setUsers(users.map(u => u.id === userId ? { ...u, role: newRole } : u));
         } catch (err) {
             console.error(err);
-            alert('Error updating role');
+            addToast('Error actualizando el rol', 'error');
         } finally {
             setUpdatingId(null);
         }
@@ -88,10 +90,10 @@ export function AdminUsers() {
             if (!res.ok) throw new Error('Error al eliminar usuario');
 
             setUsers(users.filter(u => u.id !== userId));
-            alert('Usuario eliminado correctamente');
+            addToast('Usuario eliminado correctamente', 'success');
         } catch (err) {
             console.error(err);
-            alert('Error al eliminar usuario');
+            addToast('Error al eliminar usuario', 'error');
         } finally {
             setUpdatingId(null);
         }
@@ -116,10 +118,10 @@ export function AdminUsers() {
 
             if (!res.ok) throw new Error('Error al enviar restablecimiento');
 
-            alert('Se ha enviado el correo de restablecimiento de contraseña.');
+            addToast('Correo de restablecimiento enviado', 'success');
         } catch (err) {
             console.error(err);
-            alert('Error al enviar el correo de restablecimiento');
+            addToast('Error al enviar el correo de restablecimiento', 'error');
         } finally {
             setUpdatingId(null);
         }

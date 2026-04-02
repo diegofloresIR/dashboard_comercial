@@ -47,11 +47,6 @@ export const Performance = () => {
             return val === cName || cName.includes(val) || val.includes(cName);
         };
 
-        // DIAGNOSTIC LOG (Only for the first 5 opps to avoid spam)
-        if (safeOpps.length > 0) {
-            console.log(`Checking closer match for ${closerName}`);
-        }
-
         const userOpps = safeOpps.filter(isCloser);
         const wonOpps = userOpps.filter((o: any) => o.status === 'won');
         const lostOpps = userOpps.filter((o: any) => o.status === 'lost');
@@ -94,9 +89,11 @@ export const Performance = () => {
 
 
     if (performanceData.length === 0) {
+        return (
             <div className="space-y-6">
                 <EmptyState title="Sin actividad de equipo" description="No hay métricas de rendimiento para los closers en el periodo seleccionado." />
             </div>
+        );
     }
 
     return (
