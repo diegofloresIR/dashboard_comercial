@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import crypto from "crypto";
 import axios from "axios";
 import { createClient } from "@supabase/supabase-js";
-import { GoogleGenAI } from "@google/genai";
+import OpenAI from "openai";
 
 dotenv.config();
 
@@ -1456,29 +1456,37 @@ app.post("/api/copilot/chat", requireAuth, async (req, res) => {
 
   if (!query) return res.status(400).json({ error: "Missing query" });
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return res.status(503).json({ error: "GEMINI_API_KEY no configurada en el servidor" });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return res.status(503).json({ error: "OPENAI_API_KEY no configurada en el servidor" });
 
   try {
-    const ai = new GoogleGenAI({ apiKey });
+    const openai = new OpenAI({ apiKey });
 
     // Limit context size to avoid exceeding token limits
     const contextSummary = context ? JSON.stringify(context).slice(0, 4000) : '{}';
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: `Datos del dashboard de ventas:\n${contextSummary}\n\nPregunta del usuario: ${query}`,
-      config: {
-        systemInstruction: `Eres un experto en operaciones de ventas para GoHighLevel.
-Analiza los datos proporcionados y responde de forma clara y accionable en español.
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: `Eres un experto en operaciones de ventas para GoHighLevel.
+Analiza los datos del dashboard proporcionados y responde de forma clara y accionable en español.
 Estructura tu respuesta así:
 - Responde directamente la pregunta
 - Identifica los 2-3 factores principales
-- Da recomendaciones concretas y accionables`,
-      },
+- Da recomendaciones concretas y accionables`
+        },
+        {
+          role: "user",
+          content: `Datos del dashboard de ventas:\n${contextSummary}\n\nPregunta: ${query}`
+        }
+      ],
+      max_tokens: 1000,
+      temperature: 0.7
     });
 
-    const text = response.text ?? 'Sin respuesta del asistente.';
+    const text = completion.choices[0]?.message?.content ?? 'Sin respuesta del asistente.';
     res.json({ answer: text });
   } catch (error: any) {
     const detail = error?.message || error?.toString() || 'Unknown error';
