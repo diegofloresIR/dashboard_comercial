@@ -76,8 +76,7 @@ export const Pipeline = () => {
                                 {/* Visual Pipeline Bar */}
                                 <div className="flex w-full h-4 rounded-full overflow-hidden border border-slate-100 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
                                     {stageData.map((stage: any, i: number) => {
-                                        if (stage.value === 0) return null;
-                                        const width = (stage.value / totalPipelineValue) * 100;
+                                        const width = totalPipelineValue > 0 ? (stage.value / totalPipelineValue) * 100 : (100 / stageData.length);
                                         return (
                                             <div
                                                 key={`bar-${stage.id}`}

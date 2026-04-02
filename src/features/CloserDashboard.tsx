@@ -16,6 +16,7 @@ import {
   Activity
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useStore } from '../store/useStore';
 
 interface CloserDashboardProps {
   closerName: string;
@@ -24,27 +25,39 @@ interface CloserDashboardProps {
   periodLabel?: string;
 }
 
-const STAGES = {
-  NUEVO: '0592a5e6-fd13-4a5a-90b5-c5a85984ca65',
-  INTENTO: '8b2f3520-169a-48c4-a1d9-d57516e92d1a',
-  SLA: 'a7af2177-14ac-4eb9-8425-7ec2cb9116cb',
-  CONTACTADO: '31e78973-a17e-4bc2-94d9-5493859963bb',
-  SEGUIM_CERCANO: 'a929bb37-c579-4bee-98e8-c6375d0ff87b',
-  CITA: '20cffdf9-8bb1-4853-9e9e-daa37eb1590f',
-  NOSHOW: '83c65690-d05d-4218-b62a-c7be507f2e6a',
-  OFERTA: 'abeec1b8-c599-42f7-922d-2d40ae10ef30',
-  DECISION: '9f2aa184-c216-43f2-95b2-1ed4034dcbdf',
-  PENDIENTE_PAGO: '1be1c2a2-58ed-4497-a5d9-cc0bb65dbf29',
-  PAGO_COMPLETO: '59d29ec6-5d94-4b92-a5d1-ffe4ad2f1287',
-  SEGUIM_LEJANO: '7f1344af-cf32-4db2-8855-4a002c1e3bc5',
-  NO_CUALIFICA: '0ff084c6-dcb8-4a28-a147-0ce6aacb954b',
-  DESCARTADO: '00025815-cd2e-4bce-adc4-d4312c7552a8'
+// Helper to identify stages dynamically in CloserDashboard
+const getDynamicStages = (activePipeline: any) => {
+  const stages = activePipeline?.stages || [];
+  const findId = (keywords: string[]) => 
+    stages.find((s: any) => keywords.some(k => s.name.toLowerCase().includes(k.toLowerCase())))?.id || '';
+
+  return {
+    NUEVO: findId(['nuevo', 'entry']),
+    INTENTO: findId(['intento', 'attempt']),
+    SLA: findId(['sla']),
+    CONTACTADO: findId(['contactado', 'contacted']),
+    SEGUIM_CERCANO: findId(['cercano', 'hot follow']),
+    CITA: findId(['cita', 'appointment', 'agendada']),
+    NOSHOW: findId(['no show', 'noshow', 'asistió']),
+    OFERTA: findId(['oferta', 'proposal']),
+    DECISION: findId(['decisión', 'decision']),
+    PENDIENTE_PAGO: findId(['pendiente', 'pending']),
+    PAGO_COMPLETO: findId(['pago', 'won', 'completo', 'cerrado']),
+    SEGUIM_LEJANO: findId(['lejano', 'cold follow']),
+    NO_CUALIFICA: findId(['cualifica', 'dq']),
+    DESCARTADO: findId(['descartado', 'lost', 'perdido', 'trash'])
+  };
 };
 
 export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, opportunities, onBack, periodLabel = "Periodo Seleccionado" }) => {
+  const { pipelines, filters } = useStore();
   const [selectedPhase, setSelectedPhase] = React.useState<any | null>(null);
   const [showDiagnostics, setShowDiagnostics] = React.useState(false);
   const [syncLogs, setSyncLogs] = React.useState<string[]>([]);
+  
+  const activePipelineId = filters.pipelineId || pipelines[0]?.id;
+  const activePipeline = pipelines.find(p => p.id === activePipelineId);
+  const STAGES = getDynamicStages(activePipeline);
   
   const fetchLogs = async () => {
     try {
@@ -204,24 +217,24 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
     percentage: salesCount > 0 ? (stats.count / salesCount) * 100 : 0
   })).sort((a, b) => b.revenue - a.revenue);
 
-  // Phase breakdown for table
-  const phases = [
-    { name: 'Pago completo', id: STAGES.PAGO_COMPLETO, color: 'bg-emerald-500' },
-    { name: 'Cita agendada', id: STAGES.CITA, color: 'bg-blue-500' },
-    { name: 'Contactado (actual)', id: STAGES.CONTACTADO, color: 'bg-cyan-500' },
-    { name: 'Seguim. Cercano', id: STAGES.SEGUIM_CERCANO, color: 'bg-indigo-500' },
-    { name: 'Intento contacto', ids: [STAGES.INTENTO, STAGES.SLA], color: 'bg-amber-500' },
-    { name: 'Seguim. Lejano', id: STAGES.SEGUIM_LEJANO, color: 'bg-slate-500' },
-    { name: 'Descartado', id: STAGES.DESCARTADO, color: 'bg-rose-500' },
-    { name: 'No cualifica', id: STAGES.NO_CUALIFICA, color: 'bg-pink-500' },
-  ];
-
-  const tableData = phases.map(p => {
-    const count = p.ids 
-      ? userOpps.filter(o => p.ids!.includes(o.stage_id)).length
-      : userOpps.filter(o => o.stage_id === p.id).length;
+  // Phase breakdown for table - now fully dynamic
+  const tableData = (activePipeline?.stages || []).map((stage: any, index: number) => {
+    const count = userOpps.filter(o => o.stage_id === stage.id).length;
     const percentage = totalLeads > 0 ? (count / totalLeads) * 100 : 0;
-    return { ...p, count, percentage };
+    
+    // Choose a color based on stage name or index
+    let color = `bg-indigo-${Math.min(900, 400 + (index * 100))}`;
+    if (stage.name.toLowerCase().includes('pago') || stage.name.toLowerCase().includes('won')) color = 'bg-emerald-500';
+    if (stage.name.toLowerCase().includes('descartado') || stage.name.toLowerCase().includes('lost')) color = 'bg-rose-500';
+    if (stage.name.toLowerCase().includes('cita')) color = 'bg-blue-500';
+
+    return { 
+      name: stage.name, 
+      id: stage.id, 
+      color, 
+      count, 
+      percentage 
+    };
   });
 
   const MetricCard = ({ label, value, sublabel, icon: Icon, colorClass, highlightValue, onClick }: any) => (
