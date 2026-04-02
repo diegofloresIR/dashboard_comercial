@@ -55,9 +55,39 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
   const [showDiagnostics, setShowDiagnostics] = React.useState(false);
   const [syncLogs, setSyncLogs] = React.useState<string[]>([]);
   
-  const activePipelineId = filters.pipelineId || pipelines[0]?.id;
+  const activePipelineId = filters.pipelineId;
   const activePipeline = pipelines.find(p => p.id === activePipelineId);
-  const STAGES = getDynamicStages(activePipeline);
+
+  // Helper to identify stages dynamically in CloserDashboard across all/selected pipelines
+  const getDynamicStages = (pipelines: any[], currentPipe?: any) => {
+    // If a specific pipeline is selected, only search its stages
+    // If "All" is selected, search across ALL pipelines
+    const allStages = currentPipe ? (currentPipe.stages || []) : pipelines.flatMap(p => p.stages || []);
+    
+    const findIds = (keywords: string[]) => 
+      allStages
+        .filter((s: any) => keywords.some(k => s.name.toLowerCase().includes(k.toLowerCase())))
+        .map((s: any) => s.id);
+
+    return {
+      NUEVO: findIds(['nuevo', 'entry']),
+      INTENTO: findIds(['intento', 'attempt']),
+      SLA: findIds(['sla']),
+      CONTACTADO: findIds(['contactado', 'contacted']),
+      SEGUIM_CERCANO: findIds(['cercano', 'hot follow']),
+      CITA: findIds(['cita', 'appointment', 'agendada']),
+      NOSHOW: findIds(['no show', 'noshow', 'asistió']),
+      OFERTA: findIds(['oferta', 'proposal']),
+      DECISION: findIds(['decisión', 'decision']),
+      PENDIENTE_PAGO: findIds(['pendiente', 'pending']),
+      PAGO_COMPLETO: findIds(['pago', 'won', 'completo', 'cerrado']),
+      SEGUIM_LEJANO: findIds(['lejano', 'cold follow']),
+      NO_CUALIFICA: findIds(['cualifica', 'dq']),
+      DESCARTADO: findIds(['descartado', 'lost', 'perdido', 'trash'])
+    };
+  };
+
+  const STAGES = getDynamicStages(pipelines, activePipeline);
   
   const fetchLogs = async () => {
     try {
@@ -109,14 +139,15 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
 
   // 1. Volumen de Leads
   const totalLeads = userOpps.length;
-  // Use both status and stage for maximum accuracy
-  const wonOpps = userOpps.filter(o => o.status === 'won' || o.stage_id === STAGES.PAGO_COMPLETO);
+  // Use both status and stage for maximum accuracy (STAGES IDs are now arrays)
+  const wonOpps = userOpps.filter(o => o.status === 'won' || STAGES.PAGO_COMPLETO.includes(o.stage_id));
   const salesCount = wonOpps.length;
   const salesSet = wonOpps; // For compatibility with existing logic
 
-  const contactedSet = userOpps.filter(o => ![STAGES.NUEVO, STAGES.INTENTO, STAGES.SLA].includes(o.stage_id));
+  // Contacted are those NOT in new, attempt, or sla stages
+  const contactedSet = userOpps.filter(o => !STAGES.NUEVO.concat(STAGES.INTENTO, STAGES.SLA).includes(o.stage_id));
   const contactedCount = contactedSet.length;
-  const appointmentsSet = userOpps.filter(o => o.stage_id === STAGES.CITA);
+  const appointmentsSet = userOpps.filter(o => STAGES.CITA.includes(o.stage_id));
   const appointmentsCount = appointmentsSet.length;
 
   // 2. Ratios
@@ -125,25 +156,25 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
   const totalSaleRate = totalLeads > 0 ? (salesCount / totalLeads) * 100 : 0;
 
   // 3. Estado del Pipeline
-  const closeFollowUpSet = userOpps.filter(o => o.stage_id === STAGES.SEGUIM_CERCANO);
+  const closeFollowUpSet = userOpps.filter(o => STAGES.SEGUIM_CERCANO.includes(o.stage_id));
   const closeFollowUp = closeFollowUpSet.length;
-  const longFollowUpSet = userOpps.filter(o => o.stage_id === STAGES.SEGUIM_LEJANO);
+  const longFollowUpSet = userOpps.filter(o => STAGES.SEGUIM_LEJANO.includes(o.stage_id));
   const longFollowUp = longFollowUpSet.length;
-  const discardedSet = userOpps.filter(o => o.status === 'lost' || o.status === 'abandoned' || [STAGES.DESCARTADO, STAGES.NO_CUALIFICA].includes(o.stage_id));
+  const discardedSet = userOpps.filter(o => o.status === 'lost' || o.status === 'abandoned' || STAGES.DESCARTADO.concat(STAGES.NO_CUALIFICA).includes(o.stage_id));
   const discardedCount = discardedSet.length;
   const totalRevenue = wonOpps.reduce((acc, o) => acc + Number(o.value || 0), 0);
 
   // 4. Métricas Avanzadas
-  const failedAttempts = userOpps.filter(o => [STAGES.INTENTO, STAGES.SLA].includes(o.stage_id)).length;
+  const failedAttempts = userOpps.filter(o => STAGES.INTENTO.concat(STAGES.SLA).includes(o.stage_id)).length;
   const discardRate = totalLeads > 0 ? (discardedCount / totalLeads) * 100 : 0;
   
   // New Metrics
   const avgTicket = salesCount > 0 ? totalRevenue / salesCount : 0;
-  const noShows = userOpps.filter(o => o.stage_id === STAGES.NOSHOW).length;
+  const noShows = userOpps.filter(o => STAGES.NOSHOW.includes(o.stage_id)).length;
   const bookedTotal = appointmentsCount + noShows;
   const noShowRate = bookedTotal > 0 ? (noShows / bookedTotal) * 100 : 0;
   
-  const openOpps = userOpps.filter(o => !['won', 'lost', 'abandoned'].includes(o.status) && ![STAGES.PAGO_COMPLETO, STAGES.DESCARTADO, STAGES.NO_CUALIFICA].includes(o.stage_id));
+  const openOpps = userOpps.filter(o => !['won', 'lost', 'abandoned'].includes(o.status) && !STAGES.PAGO_COMPLETO.concat(STAGES.DESCARTADO, STAGES.NO_CUALIFICA).includes(o.stage_id));
   const openValue = openOpps.reduce((acc, o) => acc + Number(o.value || 0), 0);
   const projectedRevenue = openValue * (totalSaleRate / 100);
 
@@ -219,20 +250,34 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
     percentage: salesCount > 0 ? (stats.count / salesCount) * 100 : 0
   })).sort((a, b) => b.revenue - a.revenue);
 
-  // Phase breakdown for table - now fully dynamic and filtered
-  const tableData = (activePipeline?.stages || []).map((stage: any, index: number) => {
-    const count = userOpps.filter(o => o.stage_id === stage.id).length;
+  // Phase breakdown for table - now aggregates across all pipelines if "All" is selected
+  const allAvailableStages = activePipeline 
+    ? (activePipeline.stages || []) 
+    : Array.from(new Map(pipelines.flatMap(p => p.stages || []).map(s => [s.name, s])).values());
+
+  const tableData = allAvailableStages.map((baseStage: any, index: number) => {
+    // If "All" is selected, match opportunities by NAME, not just ID
+    const count = userOpps.filter(o => {
+      if (activePipeline) return o.stage_id === baseStage.id;
+      
+      // Cross-pipeline aggregation: match by name
+      const stageName = baseStage.name.toLowerCase();
+      const oppStage = pipelines.flatMap(p => p.stages || []).find(s => s.id === o.stage_id);
+      return oppStage && oppStage.name.toLowerCase() === stageName;
+    }).length;
+
     const percentage = totalLeads > 0 ? (count / totalLeads) * 100 : 0;
     
-    // Choose a color based on stage name or index
+    // Choose a color based on stage name
     let color = `bg-indigo-${Math.min(900, 400 + (index * 100))}`;
-    if (stage.name.toLowerCase().includes('pago') || stage.name.toLowerCase().includes('won')) color = 'bg-emerald-500';
-    if (stage.name.toLowerCase().includes('descartado') || stage.name.toLowerCase().includes('lost')) color = 'bg-rose-500';
-    if (stage.name.toLowerCase().includes('cita')) color = 'bg-blue-500';
+    const name = baseStage.name.toLowerCase();
+    if (name.includes('pago') || name.includes('won') || name.includes('completo')) color = 'bg-emerald-500';
+    if (name.includes('descartado') || name.includes('lost') || name.includes('perdido')) color = 'bg-rose-500';
+    if (name.includes('cita') || name.includes('agendada')) color = 'bg-blue-500';
 
     return { 
-      name: stage.name, 
-      id: stage.id, 
+      name: baseStage.name, 
+      id: baseStage.id, 
       color, 
       count, 
       percentage 
@@ -382,7 +427,7 @@ export const CloserDashboard: React.FC<CloserDashboardProps> = ({ closerName, op
             </h1>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded border border-slate-700 font-black uppercase tracking-widest">
-                Pipeline: {activePipeline?.name || 'Cargando...'}
+                Pipeline: {activePipeline?.name || 'Todos los Funnels'}
               </span>
               <p className="text-xs text-slate-500 font-bold uppercase tracking-tighter opacity-70">
                 · {periodLabel.toUpperCase()}

@@ -717,52 +717,47 @@ app.get("/api/crm/sync", async (req, res) => {
           }
         }
       } else {
-        // V2: Use search endpoint (POST)
-        console.log(`Fetching V2 opportunities for ${locationId}...`);
-        try {
+        // V2: Fetch and sync all statuses (open, won, lost, abandoned)
+        const statuses = ['open', 'won', 'lost', 'abandoned'];
+        for (const status of statuses) {
+          console.log(`Syncing ${status} opportunities for ${locationId}...`);
           let page = 1;
           let hasMore = true;
           let safetyCounter = 0;
 
-          while (hasMore && safetyCounter < 100) { // Limit to 10k opps total for safety
+          while (hasMore && safetyCounter < 100) {
             safetyCounter++;
             try {
               const oppRes = await ghl.post("/opportunities/search", {
                 locationId,
-                limit: 100, // Maximum per page request
+                status, // Iterate through all statuses
+                limit: 100,
                 page: page
               });
 
               const fetchedOpps = oppRes.data.opportunities || [];
               if (fetchedOpps.length > 0) {
-                console.log(`Found ${fetchedOpps.length} opportunities on page ${page}.`);
+                console.log(`Found ${fetchedOpps.length} ${status} opportunities on page ${page}.`);
 
-                // Merge without duplicates
                 const existingIds = new Set(allOpps.map(o => o.id));
                 const newOpps = fetchedOpps.filter((o: any) => !existingIds.has(o.id));
                 allOpps = [...allOpps, ...newOpps];
 
-                // If it returned a full page of 100, there might be more
                 if (fetchedOpps.length === 100) {
                   page++;
                 } else {
-                  hasMore = false; // Less than 100 means we're on the last page
+                  hasMore = false;
                 }
               } else {
-                hasMore = false; // Zero results means we're done
+                hasMore = false;
               }
-            } catch (statusErr: any) {
-              console.warn(`V2 Search Error on page ${page}:`, statusErr.response?.data || statusErr.message);
-              hasMore = false; // Break loop on error
+            } catch (err: any) {
+              console.error(`Page ${page} failed for ${status}:`, err.message);
+              hasMore = false;
             }
           }
-
-          console.log(`V2 Search completed. Total unique opportunities found: ${allOpps.length}`);
-
-        } catch (searchError: any) {
-          console.error("V2 Search Fatal Error:", searchError.response?.data || searchError.message);
-          throw searchError;
         }
+        console.log(`V2 Search completed. Total unique opportunities found: ${allOpps.length}`);
       }
     } catch (ghlError: any) {
       console.error("GHL API Error during sync:", ghlError.response?.data || ghlError.message);
