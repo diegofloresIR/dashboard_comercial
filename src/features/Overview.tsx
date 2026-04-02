@@ -70,43 +70,57 @@ export const Overview = () => {
         const totalClosed = wonCount + lostCount + abandonedCount;
         const winRate = totalClosed > 0 ? (wonCount / totalClosed) * 100 : 0;
 
-        // 4 & 5. Funnel & Stage Distribution
-        // Find the active pipeline or the one with the most opportunities if none selected
-        let activePipelineId = filters.pipelineId;
-
-        if (!activePipelineId && pipelines.length > 0) {
-            // Count opps per pipeline to find the most active one
-            const pipeCounts = safeOpps.reduce((acc: any, curr: any) => {
-                const pid = curr.pipeline_id;
-                if (pid) acc[pid] = (acc[pid] || 0) + 1;
-                return acc;
-            }, {});
-
-            activePipelineId = Object.keys(pipeCounts).reduce((a, b) => pipeCounts[a] > pipeCounts[b] ? a : b, pipelines[0].id);
-        }
-
-        const activePipeline = pipelines.find(p => p.id === activePipelineId);
-
+        const isAllPipelines = !filters.pipelineId;
         const stageData: any[] = [];
         let totalOpenInPipe = 0;
 
-        if (activePipeline && activePipeline.stages) {
-            const pipeOpps = safeOpps.filter(o => o.pipeline_id === activePipeline.id && o.status === 'open');
+        if (isAllPipelines) {
+            // AGGREGATED VIEW: Across all pipelines
+            const pipeOpps = safeOpps.filter(o => o.status === 'open');
             totalOpenInPipe = pipeOpps.length;
 
-            activePipeline.stages.forEach((stage: any, index: number) => {
-                const sOpps = pipeOpps.filter(o => o.stage_id === stage.id);
+            // Group all stages by NAME across all pipelines
+            const allStagesByGroup = pipelines.flatMap(p => p.stages || []).reduce((acc: any, s: any) => {
+                const name = s.name;
+                if (!acc[name]) acc[name] = { name, ids: [], colorIndex: Object.keys(acc).length };
+                acc[name].ids.push(s.id);
+                return acc;
+            }, {});
+
+            Object.values(allStagesByGroup).forEach((group: any) => {
+                const sOpps = pipeOpps.filter(o => group.ids.includes(o.stage_id));
                 const sValue = sOpps.reduce((sum, o) => sum + Number(o.value || 0), 0);
                 
                 if (sOpps.length > 0) {
                     stageData.push({
-                        name: stage.name,
+                        name: group.name,
                         count: sOpps.length,
                         value: sValue,
-                        fill: COLORS[index % COLORS.length]
+                        fill: COLORS[group.colorIndex % COLORS.length]
                     });
                 }
             });
+        } else {
+            // SINGLE PIPELINE VIEW
+            const activePipeline = pipelines.find(p => p.id === filters.pipelineId);
+            if (activePipeline && activePipeline.stages) {
+                const pipeOpps = safeOpps.filter(o => o.pipeline_id === activePipeline.id && o.status === 'open');
+                totalOpenInPipe = pipeOpps.length;
+
+                activePipeline.stages.forEach((stage: any, index: number) => {
+                    const sOpps = pipeOpps.filter(o => o.stage_id === stage.id);
+                    const sValue = sOpps.reduce((sum, o) => sum + Number(o.value || 0), 0);
+                    
+                    if (sOpps.length > 0) {
+                        stageData.push({
+                            name: stage.name,
+                            count: sOpps.length,
+                            value: sValue,
+                            fill: COLORS[index % COLORS.length]
+                        });
+                    }
+                });
+            }
         }
 
         // 6. Opportunities Over Time (Created)

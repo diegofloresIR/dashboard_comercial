@@ -8,10 +8,29 @@ export const Pipeline = () => {
     const { pipelines, opportunities, filters } = useStore();
 
     const filteredPipelines = useMemo(() => {
-        return Array.isArray(pipelines)
-            ? (filters.pipelineId ? pipelines.filter(p => p.id === filters.pipelineId) : pipelines)
-            : [];
-    }, [pipelines, filters.pipelineId]);
+        if (!Array.isArray(pipelines) || pipelines.length === 0) return [];
+        
+        if (filters.pipelineId) {
+            return pipelines.filter(p => p.id === filters.pipelineId);
+        }
+
+        // AGGREGATED VIEW: Create a virtual 'Global Funnel'
+        const allOpps = Array.isArray(opportunities) ? opportunities : [];
+        const allStagesByGroup = pipelines.flatMap(p => p.stages || []).reduce((acc: any, s: any) => {
+            const name = s.name;
+            if (!acc[name]) acc[name] = { id: `group-${name}`, name, originalIds: [] };
+            acc[name].originalIds.push(s.id);
+            return acc;
+        }, {});
+
+        // Return a single virtual pipeline object
+        return [{
+            id: 'global-aggregate',
+            name: 'Pipeline Ejecutivo Global',
+            isGlobal: true,
+            stages: Object.values(allStagesByGroup)
+        }];
+    }, [pipelines, filters.pipelineId, opportunities]);
 
     if (filteredPipelines.length === 0) {
         return <EmptyState title="No hay Pipelines" description="No se encontraron pipelines activos para mostrar." icon={GitBranch} />;
@@ -26,17 +45,22 @@ export const Pipeline = () => {
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {filteredPipelines.map((pipeline: any) => {
-                const pipeOpps = (Array.isArray(opportunities) ? opportunities : []).filter((o: any) => o.pipeline_id === pipeline.id);
+                // If it's a global aggregate, we look at all opportunities
+                const pipeOpps = (Array.isArray(opportunities) ? opportunities : []).filter((o: any) => 
+                    pipeline.isGlobal ? true : o.pipeline_id === pipeline.id
+                );
+                
                 const stages = pipeline.stages || [];
-
-                const validStageIds = new Set(stages.map((s: any) => s.id));
+                const validStageIds = new Set(stages.flatMap((s: any) => s.originalIds || [s.id]));
                 const orphanOpps = pipeOpps.filter((o: any) => o.status === 'open' && !validStageIds.has(o.stage_id));
                 const orphanValue = orphanOpps.reduce((sum: number, o: any) => sum + Number(o.value || 0), 0);
 
                 let totalPipelineValue = orphanValue;
 
                 const stageData = stages.map((stage: any, index: number) => {
-                    const stageOpps = pipeOpps.filter((o: any) => o.stage_id === stage.id && o.status === 'open');
+                    // Match by IDs (multiple if global, single if not)
+                    const targetIds = stage.originalIds || [stage.id];
+                    const stageOpps = pipeOpps.filter((o: any) => targetIds.includes(o.stage_id) && o.status === 'open');
                     const value = stageOpps.reduce((sum: number, o: any) => sum + Number(o.value || 0), 0);
                     totalPipelineValue += value;
 
