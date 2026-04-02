@@ -1461,27 +1461,29 @@ app.post("/api/copilot/chat", requireAuth, async (req, res) => {
 
   try {
     const ai = new GoogleGenAI({ apiKey });
+
+    // Limit context size to avoid exceeding token limits
+    const contextSummary = context ? JSON.stringify(context).slice(0, 4000) : '{}';
+
     const response = await ai.models.generateContent({
       model: "gemini-1.5-flash",
-      contents: `User Query: ${query}\n\nContext Data: ${JSON.stringify(context)}`,
+      contents: `Datos del dashboard de ventas:\n${contextSummary}\n\nPregunta del usuario: ${query}`,
       config: {
         systemInstruction: `Eres un experto en operaciones de ventas para GoHighLevel.
-Analiza los datos de ventas y responde la pregunta del usuario.
-Responde en JSON con este formato exacto:
-{
-  "answer": "Explicación clara",
-  "drivers": ["Top 3 causas/factores"],
-  "recommendations": ["Pasos accionables"],
-  "metrics_referenced": ["Métricas usadas"]
-}`,
-        responseMimeType: "application/json",
+Analiza los datos proporcionados y responde de forma clara y accionable en español.
+Estructura tu respuesta así:
+- Responde directamente la pregunta
+- Identifica los 2-3 factores principales
+- Da recomendaciones concretas y accionables`,
       },
     });
-    const result = JSON.parse(response.text || "{}");
-    res.json(result);
+
+    const text = response.text ?? 'Sin respuesta del asistente.';
+    res.json({ answer: text });
   } catch (error: any) {
-    console.error("Copilot Error:", error);
-    res.status(500).json({ error: "Failed to get AI response" });
+    const detail = error?.message || error?.toString() || 'Unknown error';
+    console.error("Copilot Error:", detail);
+    res.status(500).json({ error: detail });
   }
 });
 
