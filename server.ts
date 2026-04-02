@@ -1462,7 +1462,7 @@ app.post("/api/copilot/chat", requireAuth, async (req, res) => {
   try {
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-1.5-flash",
       contents: `User Query: ${query}\n\nContext Data: ${JSON.stringify(context)}`,
       config: {
         systemInstruction: `Eres un experto en operaciones de ventas para GoHighLevel.

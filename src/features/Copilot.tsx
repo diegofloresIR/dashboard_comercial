@@ -62,7 +62,10 @@ export const Copilot = () => {
                 body: JSON.stringify({ query: userMsg, context: metrics })
             });
 
-            if (!res.ok) throw new Error('Error al conectar con el asistente IA');
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || errData.message || `Error ${res.status} del servidor`);
+            }
 
             const data = await res.json();
 
