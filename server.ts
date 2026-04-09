@@ -1496,6 +1496,101 @@ Estructura tu respuesta así:
 });
 
 
+// --- Temporal Export Endpoint ---
+
+app.get("/api/export/evergreen-web", requireAdmin, async (req: any, res: any) => {
+  try {
+    // Find the Evergreen Web pipeline
+    const { data: pipelines, error: pipeErr } = await supabase
+      .from('pipelines')
+      .select('id, name')
+      .ilike('name', '%evergreen%');
+
+    if (pipeErr || !pipelines || pipelines.length === 0) {
+      return res.status(404).json({ error: 'Pipeline Evergreen no encontrado' });
+    }
+
+    const pipeline = pipelines.find((p: any) => p.name.toLowerCase().includes('web')) || pipelines[0];
+
+    // Fetch all opportunities for this pipeline
+    const { data: opportunities, error: oppErr } = await supabase
+      .from('opportunities')
+      .select('*')
+      .eq('pipeline_id', pipeline.id);
+
+    if (oppErr) return res.status(500).json({ error: oppErr.message });
+
+    // Helper: extract contact email
+    const extractEmail = (o: any): string =>
+      o.contact?.email || o.raw?.contact?.email || o.email || o.raw?.email || '';
+
+    // Helper: extract sale origin (same logic as CloserDashboard)
+    const extractOrigin = (o: any): string => {
+      const rawCFs = o.custom_fields || o.raw?.customFields;
+      let val = '';
+
+      if (Array.isArray(rawCFs)) {
+        const field = rawCFs.find((f: any) => {
+          const id = String(f.id || f.fieldId || '').toLowerCase();
+          const label = String(f.name || f.label || '').toLowerCase();
+          return id === 'dqikojqcdr8uyocozgpt' || label.includes('origen') || label.includes('fuente') || label.includes('procedencia');
+        });
+        if (field) {
+          let rv = field.fieldValue || field.value || field.fieldValueString;
+          if (typeof rv === 'string' && rv.startsWith('[') && rv.endsWith(']')) {
+            try { const p = JSON.parse(rv); if (Array.isArray(p)) rv = p; } catch {}
+          }
+          if (Array.isArray(rv) && rv.length > 0) rv = rv[0];
+          val = String(rv || '').toLowerCase().trim();
+        }
+        if (!val || ['none', 'null', 'undefined', 'otro'].includes(val)) {
+          const kw = rawCFs.find((f: any) => {
+            const v = String(f.fieldValue || f.value || f.fieldValueString || '').toLowerCase();
+            return v.includes('hotmart') || v.includes('transferencia');
+          });
+          if (kw) {
+            let rv = kw.fieldValue || kw.value || kw.fieldValueString;
+            if (Array.isArray(rv) && rv.length > 0) rv = rv[0];
+            val = String(rv || '').toLowerCase().trim();
+          }
+        }
+      } else if (rawCFs && typeof rawCFs === 'object') {
+        const key = Object.keys(rawCFs).find((k: string) =>
+          k === 'dQIKOJqcDR8uYOcoZGPt' || k.toLowerCase().includes('origen') || k.toLowerCase().includes('fuente')
+        );
+        if (key) val = String((rawCFs as any)[key] || '').toLowerCase().trim();
+      }
+
+      let origin = 'Otro';
+      if (val && !['none', 'null', 'undefined', 'otro'].includes(val)) {
+        if (val.includes('hotmart')) origin = 'Hotmart';
+        else if (val.includes('transferencia')) origin = 'Transferencia';
+        else origin = val.charAt(0).toUpperCase() + val.slice(1);
+      }
+      if (origin === 'Otro' && o.raw) {
+        const rawStr = JSON.stringify(o.raw).toLowerCase();
+        if (rawStr.includes('hotmart')) origin = 'Hotmart';
+        else if (rawStr.includes('transferencia')) origin = 'Transferencia';
+      }
+      return origin;
+    };
+
+    // Build CSV with BOM for Excel compatibility
+    const BOM = '\uFEFF';
+    const header = 'ID Oportunidad,Email Contacto,Origen de Venta\n';
+    const body = (opportunities || [])
+      .map((o: any) => `"${o.id}","${extractEmail(o)}","${extractOrigin(o)}"`)
+      .join('\n');
+
+    const filename = `evergreen-web-${new Date().toISOString().split('T')[0]}.csv`;
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(BOM + header + body);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // --- Vite Setup ---
 
 async function startServer() {
