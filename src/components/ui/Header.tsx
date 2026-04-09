@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sun, Moon, Clock, RefreshCw, Filter, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { useStore } from '../../store/useStore';
+import { supabase } from '../../lib/supabase';
 import { format, formatDistanceToNow, isToday, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
@@ -52,22 +53,28 @@ export const Header = () => {
         return 'Dashboard de Ventas';
     };
 
+    const { addToast } = useStore();
+
     const handleSync = async (isFull = false) => {
         if (!connection) return;
         setSyncing(true);
         try {
+            const { data: { session } } = await supabase.auth.getSession();
+            const headers: Record<string, string> = session
+                ? { Authorization: `Bearer ${session.access_token}` }
+                : {};
             const url = `/api/crm/sync?locationId=${connection.location_id}${isFull ? '&full=true' : ''}`;
-            const res = await fetch(url);
+            const res = await fetch(url, { headers });
             const data = await res.json();
             if (res.ok) {
-                console.log(`Synced ${data.count} opportunities`);
                 await Promise.all([fetchMetrics(), fetchMetadata(), fetchOpportunities()]);
-                if (isFull) alert('¡Reinicio completado! Los datos son ahora un espejo exacto de GHL.');
+                addToast(`Sincronización completada. ${data.count} oportunidades importadas.`, 'success');
             } else {
-                alert(data.error || 'Sync failed');
+                addToast(data.error || 'Error en la sincronización', 'error');
             }
         } catch (err) {
             console.error('Sync error:', err);
+            addToast('Error al sincronizar. Inténtalo de nuevo.', 'error');
         } finally {
             setSyncing(false);
         }
