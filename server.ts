@@ -724,8 +724,8 @@ app.get("/api/crm/sync", requireAdmin, async (req: any, res: any) => {
             safetyCounter++;
             try {
               const oppRes = await ghl.post("/opportunities/search", {
-                locationId,
-                status, // Iterate through all statuses
+                location_id: locationId,
+                status,
                 limit: 100,
                 page: page
               });
