@@ -51,25 +51,23 @@ export const Performance = () => {
         const wonOpps = userOpps.filter((o: any) => o.status === 'won');
         const lostOpps = userOpps.filter((o: any) => o.status === 'lost');
 
-        const getCustomFieldNumeric = (o: any, labelMatch: string): number => {
+        const getCustomFieldById = (o: any, fieldId: string): number => {
             const rawCFs = o.custom_fields || o.raw?.customFields;
             if (!Array.isArray(rawCFs)) return 0;
-            const field = rawCFs.find((f: any) => {
-                const label = String(f.name || f.label || f.fieldKey || '').toLowerCase();
-                return label.includes(labelMatch);
-            });
+            const field = rawCFs.find((f: any) => f.id === fieldId);
             if (!field) return 0;
-            const raw = field.fieldValue ?? field.value ?? field.fieldValueString ?? '';
-            const num = parseFloat(String(raw).replace(/[^0-9.-]/g, ''));
+            const num = field.fieldValueNumber ?? parseFloat(String(field.fieldValue ?? field.value ?? '').replace(/[^0-9.-]/g, ''));
             return isNaN(num) ? 0 : num;
         };
 
+        const CF_IMPORTE_NETO = 'pBXyfIewWG6gDjObBGXd';
+        const CF_COMISION    = 'qyivVzuJ7VrePE4OtjIF';
+
         const revenue = wonOpps.reduce((sum: number, o: any) => {
-            const neto = getCustomFieldNumeric(o, 'importe base neto');
+            const neto = getCustomFieldById(o, CF_IMPORTE_NETO);
             return sum + (neto > 0 ? neto : Number(o.value || 0));
         }, 0);
-        const commission = wonOpps.reduce((sum: number, o: any) => sum + getCustomFieldNumeric(o, 'comisión closer'), 0)
-            || wonOpps.reduce((sum: number, o: any) => sum + getCustomFieldNumeric(o, 'comision closer'), 0);
+        const commission = wonOpps.reduce((sum: number, o: any) => sum + getCustomFieldById(o, CF_COMISION), 0);
         const winRate = userOpps.length > 0 ? (wonOpps.length / userOpps.length) * 100 : 0;
         const avgDeal = wonOpps.length > 0 ? revenue / wonOpps.length : 0;
 
