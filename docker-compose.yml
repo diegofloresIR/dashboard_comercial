@@ -2,31 +2,34 @@ version: '3.8'
 
 services:
   salesops-dashboard:
-    # Utilizamos la imagen compilada automáticamente en GitHub (descargará la última versión)
-    image: ghcr.io/sergioamizmarketing/inversi-nracional-dashboard:latest
+    # Utilizamos la imagen compilada automáticamente en GitHub del repositorio del cliente
+    image: ghcr.io/diegofloresir/dashboard_comercial:latest
     environment:
       - NODE_ENV=production
       - PORT=3000
-      # VARIABLES DE SUPABASE (Apuntar a tu stack local de Supabase)
-      - SUPABASE_URL=http://kong:8000 # Ejemplo, ajusta a tu red de swarm
-      - SUPABASE_ANON_KEY=tu_anon_key
-      - SUPABASE_SERVICE_ROLE_KEY=tu_service_role_key
-      # VARIABLES DE HIGHLEVEL
-      - GHL_CLIENT_ID=tu_client_id
-      - GHL_CLIENT_SECRET=tu_client_secret
+      # LAS SIGUIENTES VARIABLES DEBEN CONFIGURARSE EN PORTAINER (SECCIÓN ENVIRONMENT VARIABLES)
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      - GHL_CLIENT_ID=${GHL_CLIENT_ID}
+      - GHL_CLIENT_SECRET=${GHL_CLIENT_SECRET}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - APP_URL=${APP_URL}
+      # Opcionales si se usa integración interna
+      - GHL_LOCATION_ID=${GHL_LOCATION_ID}
+      - GHL_API_KEY=${GHL_API_KEY}
 
     networks:
-      - Vpsnet # Cambiado a tu red Vpsnet
+      - VpsNet
     deploy:
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.salesops.rule=Host(`dashboard.sergiomars.com`)"
+        - "traefik.http.routers.salesops.rule=Host(`${DOMAIN_NAME}`)"
         - "traefik.http.routers.salesops.entrypoints=websecure"
         - "traefik.http.routers.salesops.tls=true"
-        - "traefik.http.routers.salesops.tls.certresolver=myresolver" # CAMBIA AL NOMBRE DE TU RESOLVER
+        - "traefik.http.routers.salesops.tls.certresolver=${TRAEFIK_RESOLVER}"
         - "traefik.http.services.salesops.loadbalancer.server.port=3000"
 
 networks:
-  # Esta es la red de Portainer/Traefik. (Extraída de tu captura 'Vpsnet')
-  Vpsnet:
+  VpsNet:
     external: true
