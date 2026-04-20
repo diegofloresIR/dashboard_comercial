@@ -27,7 +27,7 @@ services:
         - "traefik.http.routers.salesops.rule=Host(`dashboard.inversionracional.com`)"
         - "traefik.http.routers.salesops.entrypoints=websecure"
         - "traefik.http.routers.salesops.tls=true"
-        - "traefik.http.routers.salesops.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.salesops.tls.certresolver=letsencryptresolver"
         - "traefik.http.services.salesops.loadbalancer.server.port=3000"
 
 networks:
