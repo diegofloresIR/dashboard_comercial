@@ -12,8 +12,11 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the Vite frontend
-RUN npm run build
+# Debug: List files to ensure public/logo.jpg exists
+RUN ls -la && ls -la public || true
+
+# Build the Vite frontend with more info
+RUN npm run build -- --logLevel info
 
 # Build the TypeScript backend (if needed, otherwise tsx handles it or we can compile it)
 # For production, it's better to compile server.ts to JS, but for simplicity, we can use tsx or compile
