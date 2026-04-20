@@ -377,6 +377,31 @@ app.get("/api/crm/debug-status", async (req, res) => {
   }
 });
 
+app.get("/api/crm/init-internal", async (req, res) => {
+  const locationId = process.env.GHL_LOCATION_ID?.trim();
+  const apiKey = process.env.GHL_API_KEY?.trim();
+
+  if (!locationId || !apiKey) {
+    return res.status(400).json({ error: "GHL_LOCATION_ID or GHL_API_KEY not found in environment variables." });
+  }
+
+  try {
+    const { data, error } = await supabase.from("ghl_connections").upsert({
+      location_id: locationId,
+      access_token: apiKey, 
+      refresh_token: "internal",
+      token_expires_at: new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000).toISOString(),
+      scopes: ["internal"],
+    }, { onConflict: "location_id" }).select().single();
+
+    if (error) throw error;
+
+    res.json({ success: true, message: "Internal integration initialized.", connection: data });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.post("/api/crm/init-internal", async (req, res) => {
   const locationId = process.env.GHL_LOCATION_ID?.trim();
   const apiKey = process.env.GHL_API_KEY?.trim();
@@ -405,7 +430,7 @@ app.post("/api/crm/init-internal", async (req, res) => {
 app.get("/api/crm/oauth/start", (req, res) => {
   const clientId = process.env.GHL_CLIENT_ID;
   const redirectUri = `${process.env.APP_URL}/api/crm/oauth/callback`;
-  const scope = "opportunities.readonly opportunities.write contacts.readonly contacts.write users.readonly locations.readonly locations.customFields.readonly";
+  const scope = "opportunities.readonly opportunities.write contacts.readonly contacts.write users.readonly locations.readonly";
 
   const authUrl = `https://marketplace.gohighlevel.com/oauth/chooselocation?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
 
