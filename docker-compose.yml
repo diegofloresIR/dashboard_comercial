@@ -24,10 +24,10 @@ services:
     deploy:
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.salesops.rule=Host(`${DOMAIN_NAME}`)"
+        - "traefik.http.routers.salesops.rule=Host(`dashboard.inversionracional.com`)"
         - "traefik.http.routers.salesops.entrypoints=websecure"
         - "traefik.http.routers.salesops.tls=true"
-        - "traefik.http.routers.salesops.tls.certresolver=${TRAEFIK_RESOLVER}"
+        - "traefik.http.routers.salesops.tls.certresolver=letsencrypt"
         - "traefik.http.services.salesops.loadbalancer.server.port=3000"
 
 networks:
