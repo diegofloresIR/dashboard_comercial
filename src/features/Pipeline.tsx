@@ -84,7 +84,7 @@ export const Pipeline = () => {
                         <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
                             <div>
                                 <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <GitBranch className="w-5 h-5 text-indigo-500" />
+                                    <GitBranch className="w-5 h-5 text-blue-500" />
                                     {pipeline.name}
                                 </h2>
                                 <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{pipeOpps.length} Oportunidades Históricas</p>
@@ -106,7 +106,7 @@ export const Pipeline = () => {
                                             <div
                                                 key={`bar-${stage.id}`}
                                                 className={`h-full border-r border-white/20 dark:border-slate-900/20 last:border-0 transition-all duration-1000`}
-                                                style={{ width: `${width}%`, backgroundColor: `hsl(230, 80%, ${Math.max(30, 80 - (i * 10))}%)` }}
+                                                style={{ width: `${width}%`, backgroundColor: `hsl(220, 80%, ${Math.max(30, 80 - (i * 10))}%)` }}
                                                 title={`${stage.name}: €${stage.value.toLocaleString()}`}
                                             />
                                         );

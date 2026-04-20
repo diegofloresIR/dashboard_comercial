@@ -138,7 +138,7 @@ export function AdminUsers() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-96">
-                <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
+                <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
             </div>
         );
     }
@@ -148,7 +148,7 @@ export function AdminUsers() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                        <ShieldCheck className="w-8 h-8 text-indigo-500" />
+                        <ShieldCheck className="w-8 h-8 text-blue-500" />
                         Gestión de Usuarios
                     </h2>
                     <p className="text-slate-500 dark:text-slate-400 mt-1">Administra los accesos y roles de los miembros del equipo.</p>
@@ -171,8 +171,8 @@ export function AdminUsers() {
                                 <tr key={user.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors">
                                     <td className="p-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center">
-                                                <UserCog className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30 flex items-center justify-center">
+                                                <UserCog className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                             </div>
                                             <div>
                                                 <div className="font-semibold text-slate-900 dark:text-white capitalize">
@@ -190,10 +190,10 @@ export function AdminUsers() {
                                                 value={user.role}
                                                 onChange={(e) => handleRoleChange(user.id, e.target.value)}
                                                 disabled={updatingId === user.id}
-                                                className={`px-3 py-2 rounded-xl text-sm font-medium border focus:ring-2 focus:ring-indigo-500 outline-none transition-all ${user.role === 'pending'
+                                                className={`px-3 py-2 rounded-xl text-sm font-medium border focus:ring-2 focus:ring-blue-500 outline-none transition-all ${user.role === 'pending'
                                                         ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800/50'
                                                         : user.role === 'admin'
-                                                            ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800/50'
+                                                            ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800/50'
                                                             : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800/50'
                                                     }`}
                                             >
@@ -201,7 +201,7 @@ export function AdminUsers() {
                                                     <option key={r.value} value={r.value}>{r.label}</option>
                                                 ))}
                                             </select>
-                                            {updatingId === user.id && <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />}
+                                            {updatingId === user.id && <Loader2 className="w-4 h-4 animate-spin text-blue-500" />}
                                         </div>
                                     </td>
                                     <td className="p-4 text-slate-500 dark:text-slate-400">
@@ -215,7 +215,7 @@ export function AdminUsers() {
                                             <button
                                                 onClick={() => handleResetPassword(user.id, user.email)}
                                                 disabled={updatingId === user.id}
-                                                className="p-2 text-indigo-600 hover:bg-indigo-50 dark:text-indigo-400 dark:hover:bg-indigo-900/30 rounded-xl transition-all"
+                                                className="p-2 text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-xl transition-all"
                                                 title="Restablecer Contraseña"
                                             >
                                                 <KeyRound className="w-5 h-5" />

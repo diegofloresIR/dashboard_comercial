@@ -145,7 +145,7 @@ export const Performance = () => {
                                 <td className="px-6 py-5">
                                     <div className="flex items-center gap-4">
                                         <div className="relative">
-                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/40 dark:to-purple-900/40 flex items-center justify-center text-indigo-700 dark:text-indigo-300 font-bold text-sm shadow-sm">
+                                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/40 dark:to-cyan-900/40 flex items-center justify-center text-blue-700 dark:text-blue-300 font-bold text-sm shadow-sm">
                                                 {closer.firstName?.[0] || 'C'}
                                             </div>
                                             {index === 0 && (
@@ -159,7 +159,7 @@ export const Performance = () => {
                                     </div>
                                 </td>
                                 <td className="px-6 py-5">
-                                    <div className="font-extrabold text-slate-900 dark:text-white text-lg group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                                    <div className="font-extrabold text-slate-900 dark:text-white text-lg group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                         €{closer.revenue.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                                     </div>
                                 </td>

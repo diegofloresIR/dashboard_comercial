@@ -69,7 +69,7 @@ export const Funnel = () => {
                 <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl p-4 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700">
                     <p className="font-bold text-slate-900 dark:text-white mb-2">{data.name}</p>
                     <div className="space-y-1">
-                        <p className="text-sm text-slate-600 dark:text-slate-300">Oportunidades: <span className="font-bold text-indigo-600 dark:text-indigo-400">{data.count}</span></p>
+                        <p className="text-sm text-slate-600 dark:text-slate-300">Oportunidades: <span className="font-bold text-blue-600 dark:text-blue-400">{data.count}</span></p>
                         {data.conversionRate > 0 && data.conversionRate < 100 && (
                             <p className="text-sm text-slate-600 dark:text-slate-300">
                                 Conversión desde ant: <span className="font-bold text-emerald-600 dark:text-emerald-400">{data.conversionRate.toFixed(1)}%</span>
@@ -93,7 +93,7 @@ export const Funnel = () => {
             <div className="flex justify-between items-end mb-8">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                        <BarChart2 className="w-6 h-6 text-indigo-500" />
+                        <BarChart2 className="w-6 h-6 text-blue-500" />
                         Análisis de Conversión (Funnel)
                     </h2>
                     <p className="text-slate-500 dark:text-slate-400">Identifica los cuellos de botella en tu proceso de ventas.</p>
@@ -123,7 +123,7 @@ export const Funnel = () => {
 
             <div className="mt-6 flex justify-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-indigo-500 opacity-80"></div>
+                    <div className="w-3 h-3 rounded-full bg-blue-500 opacity-80"></div>
                     <span className="text-slate-600 dark:text-slate-300 font-medium">Flujo Normal</span>
                 </div>
                 <div className="flex items-center gap-2">

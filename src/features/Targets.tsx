@@ -75,7 +75,7 @@ export const Targets = () => {
             </div>
 
             <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner rotate-3 hover:rotate-0 transition-transform">
-                <Target className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+                <Target className="w-10 h-10 text-blue-600 dark:text-blue-400" />
             </div>
 
             <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2">Objetivo Mensual</h2>
@@ -87,7 +87,7 @@ export const Targets = () => {
                 <div className="flex justify-between items-end mb-4 relative z-10">
                     <div className="text-left">
                         <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Logrado</p>
-                        <p className="text-4xl font-black text-indigo-600 dark:text-indigo-400">€{currentRevenue.toLocaleString()}</p>
+                        <p className="text-4xl font-black text-blue-600 dark:text-blue-400">€{currentRevenue.toLocaleString()}</p>
                     </div>
                     <div className="text-right">
                         <p className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Meta</p>
@@ -118,7 +118,7 @@ export const Targets = () => {
 
                 <div className="relative w-full h-8 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden mb-6 shadow-inner z-10">
                     <div
-                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 rounded-full transition-all duration-1000 ease-out flex flex-col justify-center overflow-hidden"
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 rounded-full transition-all duration-1000 ease-out flex flex-col justify-center overflow-hidden"
                         style={{ width: `${percentage}%` }}
                     >
                         <div className="w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4IiBoZWlnaHQ9IjgiPgo8cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSI4IiBmaWxsPSIjZmZmIiBmaWxsLW9wYWNpdHk9IjAuMSI+PC9yZWN0Pgo8cGF0aCBkPSJNMCAwTDggOFpNOCAwTDAgOFoiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW9wYWNpdHk9IjAuMSIgc3Ryb2tlLXdpZHRoPSIxIj48L3BhdGg+Cjwvc3ZnPg==')] opacity-20"></div>

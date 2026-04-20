@@ -10,7 +10,7 @@ import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
 // Colors based on the brand logo
-const COLORS = ['#0047FF', '#38bdf8', '#4ade80', '#fbbf24', '#f472b6', '#a855f7', '#f87171', '#94a3b8'];
+const COLORS = ['#0047FF', '#38bdf8', '#0ea5e9', '#0284c7', '#0369a1', '#075985', '#0c4a6e', '#94a3b8'];
 const STATUS_COLORS = { open: '#0047FF', won: '#4ade80', lost: '#f87171', abandoned: '#94a3b8' };
 
 const Delta = ({ current, prev }: { current: number; prev: number }) => {

@@ -89,44 +89,44 @@ export const Copilot = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
 
             {/* What-If Simulation Panel */}
-            <div className="lg:col-span-1 border border-indigo-200 dark:border-indigo-500/30 rounded-3xl overflow-hidden shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl relative">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
-                <div className="p-6 bg-indigo-50/80 dark:bg-indigo-900/40 border-b border-indigo-100 dark:border-indigo-800/50 relative z-10">
-                    <h3 className="font-bold text-lg text-indigo-900 dark:text-indigo-100 flex items-center gap-2">
+            <div className="lg:col-span-1 border border-blue-200 dark:border-blue-500/30 rounded-3xl overflow-hidden shadow-lg bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl relative">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none"></div>
+                <div className="p-6 bg-blue-50/80 dark:bg-blue-900/40 border-b border-blue-100 dark:border-blue-800/50 relative z-10">
+                    <h3 className="font-bold text-lg text-blue-900 dark:text-blue-100 flex items-center gap-2">
                         🧪 Simulador "What-If"
                     </h3>
-                    <p className="text-sm text-indigo-700 dark:text-indigo-300 mt-1">Calcula escenarios comerciales en tiempo real.</p>
+                    <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">Calcula escenarios comerciales en tiempo real.</p>
                 </div>
 
                 <div className="p-6 space-y-6 relative z-10">
                     <div>
                         <label className="flex justify-between text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                             <span>Incremento Actividad (Leads)</span>
-                            <span className="text-indigo-600 dark:text-indigo-400">+{simActivityBump}%</span>
+                            <span className="text-blue-600 dark:text-blue-400">+{simActivityBump}%</span>
                         </label>
                         <input
                             type="range" min="0" max="100" step="5" value={simActivityBump}
                             onChange={(e) => setSimActivityBump(Number(e.target.value))}
-                            className="w-full accent-indigo-600"
+                            className="w-full accent-blue-600"
                         />
                     </div>
 
                     <div>
                         <label className="flex justify-between text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                             <span>Win Rate Proyectado</span>
-                            <span className="text-indigo-600 dark:text-indigo-400">{simWinRate}%</span>
+                            <span className="text-blue-600 dark:text-blue-400">{simWinRate}%</span>
                         </label>
                         <input
                             type="range" min="1" max="100" step="0.5" value={simWinRate}
                             onChange={(e) => setSimWinRate(Number(e.target.value))}
-                            className="w-full accent-indigo-600"
+                            className="w-full accent-blue-600"
                         />
                     </div>
 
                     <div>
                         <label className="flex justify-between text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
                             <span>Ticket Medio Estimado</span>
-                            <span className="text-indigo-600 dark:text-indigo-400">€{simAvgDeal.toFixed(0)}</span>
+                            <span className="text-blue-600 dark:text-blue-400">€{simAvgDeal.toFixed(0)}</span>
                         </label>
                         <input
                             type="number" value={simAvgDeal}
@@ -137,7 +137,7 @@ export const Copilot = () => {
 
                     <button
                         onClick={handleSimulate}
-                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
                     >
                         <RefreshCw className="w-4 h-4" /> Ejecutar Simulación
                     </button>
@@ -148,7 +148,7 @@ export const Copilot = () => {
             <div className="lg:col-span-2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border border-white/50 dark:border-slate-700/50 rounded-3xl shadow-sm flex flex-col h-[600px] overflow-hidden">
                 <div className="p-6 border-b border-white/50 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                        <MessageSquare className="w-5 h-5 text-indigo-500" />
+                        <MessageSquare className="w-5 h-5 text-blue-500" />
                         AI Analytics Assistant
                     </h2>
                     <div className="flex items-center gap-2 text-xs font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-full">
@@ -160,7 +160,7 @@ export const Copilot = () => {
                     {messages.map((m, i) => (
                         <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                             <div className={`max-w-[80%] rounded-2xl p-4 ${m.role === 'user'
-                                    ? 'bg-indigo-600 text-white rounded-br-none shadow-md shadow-indigo-200 dark:shadow-indigo-900/20'
+                                    ? 'bg-blue-600 text-white rounded-br-none shadow-md shadow-blue-200 dark:shadow-blue-900/20'
                                     : 'bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200 rounded-bl-none shadow-sm'
                                 }`}>
                                 {m.content.split('\n').map((line, j) => {
@@ -189,12 +189,12 @@ export const Copilot = () => {
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             placeholder="Ej: ¿Por qué bajó el win rate esta semana?"
-                            className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all text-slate-900 dark:text-white outline-none"
+                            className="flex-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-slate-900 dark:text-white outline-none"
                         />
                         <button
                             type="submit"
                             disabled={!input.trim() || asking}
-                            className="bg-indigo-600 text-white p-3 rounded-xl hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:hover:bg-indigo-600 shadow-md shadow-indigo-200 dark:shadow-indigo-900/20"
+                            className="bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:hover:bg-blue-600 shadow-md shadow-blue-200 dark:shadow-blue-900/20"
                         >
                             <Send className="w-5 h-5" />
                         </button>
