@@ -66,6 +66,9 @@ export default function App() {
   useEffect(() => {
     checkUser();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      // No hacer nada si estamos en modo desarrollo para que el bypass funcione
+      if (import.meta.env.DEV) return;
+
       try {
         if (session?.user) {
           try {
@@ -150,6 +153,20 @@ export default function App() {
 
   const checkUser = async () => {
     try {
+      // --- BYPASS DE DESARROLLO LOCAL ---
+      if (import.meta.env.DEV) {
+        console.log("🛠️ Modo desarrollo detectado: Aplicando bypass de login...");
+        setUser({
+          id: 'dev-user',
+          email: 'admin@dev.local',
+          role: 'admin',
+          profile: { role: 'admin', full_name: 'Administrador Local' }
+        } as any);
+        setLoading(false);
+        return;
+      }
+      // ----------------------------------
+
       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Supabase timeout")), 8000));
 
       const { data: { session }, error: sessionError } = await Promise.race([

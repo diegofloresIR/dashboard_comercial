@@ -1823,31 +1823,42 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    // Serve static files with 1-year cache on assets
-    app.use(express.static(path.join(__dirname, "dist"), {
+    const distPath = path.resolve(__dirname, "dist");
+    const indexPath = path.resolve(distPath, "index.html");
+    
+    console.log(`[Production] Sirviendo archivos estáticos desde: ${distPath}`);
+    
+    import('fs').then(fs => {
+      if (fs.existsSync(indexPath)) {
+        console.log(`[Production] ✅ index.html encontrado en ${indexPath}`);
+      } else {
+        console.error(`[Production] ❌ ERROR: index.html NO ENCONTRADO en ${indexPath}`);
+        console.log("[Production] Contenido de /app:", fs.readdirSync(path.resolve(__dirname)).join(', '));
+      }
+    });
+
+    app.use(express.static(distPath, {
       setHeaders: (res, path) => {
         if (path.endsWith('.html')) {
           res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-          res.setHeader('Pragma', 'no-cache');
-          res.setHeader('Expires', '0');
         } else {
-          // Keep normal cache for JS/CSS with hash filenames
           res.setHeader('Cache-Control', 'public, max-age=31536000');
         }
       }
     }));
 
-    // Always serve fresh index.html for unknown routes (SPA)
     app.get("*", (req, res) => {
-      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.setHeader('Pragma', 'no-cache');
-      res.setHeader('Expires', '0');
-      res.sendFile(path.join(__dirname, "dist", "index.html"));
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          console.error(`[Production] Error al enviar index.html: ${err.message}`);
+          res.status(404).send(`404: Frontend no compilado. Verifica que la carpeta 'dist' exista en el servidor. Error: ${err.message}`);
+        }
+      });
     });
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
   });
 }
 
