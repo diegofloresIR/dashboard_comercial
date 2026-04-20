@@ -80,13 +80,13 @@ export default function App() {
 
             if (profileRes.ok) {
               const profile = await profileRes.json();
-              setUser({ ...session.user, role: profile?.role || 'pending', profile });
+              setUser({ ...session.user, role: profile?.role || 'pending', profile } as any);
             } else {
-              setUser({ ...session.user, role: 'pending', profile: null });
+              setUser({ ...session.user, role: 'pending', profile: null } as any);
             }
           } catch (err) {
             console.error("Profile fetch error in auth listener:", err);
-            setUser({ ...session.user, role: 'pending', profile: null });
+            setUser({ ...session.user, role: 'pending', profile: null } as any);
           }
         } else {
           setUser(null);
