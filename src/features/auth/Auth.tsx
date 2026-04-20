@@ -92,7 +92,7 @@ export function Auth() {
                 <div className="text-center mb-8">
                     <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl border border-slate-100 dark:border-slate-800 p-2">
                         <img 
-                            src="/logo.png" 
+                            src="/logo.jpg" 
                             alt="Logo" 
                             className="w-full h-full object-contain"
                             onError={(e) => {

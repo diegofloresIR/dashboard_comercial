@@ -61,7 +61,7 @@ export const Sidebar = ({ navigations }: { navigations: any[] }) => {
                 <div className="flex items-center justify-between px-2 overflow-hidden h-10">
                     <div className="flex items-center gap-3">
                         <img 
-                            src="/logo.png" 
+                            src="/logo.jpg" 
                             alt="Logo" 
                             className="w-8 h-8 flex-shrink-0 object-contain"
                             onError={(e) => {
