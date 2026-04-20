@@ -9,9 +9,9 @@ import {
 import { format, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-// Colors based on the screenshot (GHL standard)
-const COLORS = ['#38bdf8', '#fbbf24', '#a855f7', '#818cf8', '#6366f1', '#4ade80', '#f472b6', '#f87171'];
-const STATUS_COLORS = { open: '#38bdf8', won: '#4ade80', lost: '#f87171', abandoned: '#94a3b8' };
+// Colors based on the brand logo
+const COLORS = ['#0047FF', '#38bdf8', '#4ade80', '#fbbf24', '#f472b6', '#a855f7', '#f87171', '#94a3b8'];
+const STATUS_COLORS = { open: '#0047FF', won: '#4ade80', lost: '#f87171', abandoned: '#94a3b8' };
 
 const Delta = ({ current, prev }: { current: number; prev: number }) => {
     if (!prev || prev === 0) return null;
@@ -197,8 +197,8 @@ export const Overview = () => {
                         <AreaChart data={chartData.timeData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                    <stop offset="5%" stopColor="#0047FF" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#0047FF" stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" className="dark:stroke-slate-700" />
@@ -220,7 +220,7 @@ export const Overview = () => {
                                 type="monotone" 
                                 dataKey="count" 
                                 name="Leads"
-                                stroke="#6366f1" 
+                                stroke="#0047FF" 
                                 strokeWidth={3}
                                 fillOpacity={1} 
                                 fill="url(#colorCount)" 
@@ -281,7 +281,7 @@ export const Overview = () => {
                     <div className="w-full h-44 relative">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
-                                <Pie data={[{ value: winRate, fill: '#38bdf8' }, { value: Math.max(100 - winRate, 0), fill: '#f1f5f9', stroke: 'none' }]} innerRadius={65} outerRadius={85} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>
+                                <Pie data={[{ value: winRate, fill: '#0047FF' }, { value: Math.max(100 - winRate, 0), fill: '#f1f5f9', stroke: 'none' }]} innerRadius={65} outerRadius={85} dataKey="value" stroke="none" startAngle={90} endAngle={-270}>
                                     <Label value={`${winRate.toFixed(2)}%`} position="center" className="text-2xl font-black fill-slate-900 dark:fill-white" />
                                 </Pie>
                                 <RechartsTooltip content={({ active }) => active && winRate > 0 ? <div className="bg-white/90 dark:bg-slate-800/90 p-2 rounded-lg shadow font-bold text-sm">Tasa de Cierre: {winRate.toFixed(2)}%</div> : null} />

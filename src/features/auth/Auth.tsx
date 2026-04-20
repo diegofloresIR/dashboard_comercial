@@ -80,8 +80,8 @@ export function Auth() {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
             <div className="absolute inset-0 z-0">
-                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl" />
-                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
+                <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-brand-light/10 rounded-full blur-3xl" />
             </div>
 
             <motion.div
@@ -90,8 +90,19 @@ export function Auth() {
                 className="w-full max-w-md bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-200 dark:border-slate-700 relative z-10"
             >
                 <div className="text-center mb-8">
-                    <div className="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-600/30">
-                        <Lock className="w-8 h-8 text-white" />
+                    <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-xl border border-slate-100 dark:border-slate-800 p-2">
+                        <img 
+                            src="/logo.png" 
+                            alt="Logo" 
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                        />
+                        <div className="hidden w-10 h-10 bg-brand rounded-lg flex items-center justify-center">
+                            <Lock className="w-6 h-6 text-white" />
+                        </div>
                     </div>
                     <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
                         {isLogin ? 'Bienvenido' : 'Crear Cuenta'}
@@ -118,7 +129,7 @@ export function Auth() {
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value)}
                                         placeholder="Nombre completo"
-                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white transition-all shadow-inner"
+                                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-brand outline-none text-slate-900 dark:text-white transition-all shadow-inner"
                                     />
                                 </div>
                             </motion.div>
@@ -133,7 +144,7 @@ export function Auth() {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="Correo electrónico"
-                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white transition-all shadow-inner"
+                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-brand outline-none text-slate-900 dark:text-white transition-all shadow-inner"
                         />
                     </div>
 
@@ -145,7 +156,7 @@ export function Auth() {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             placeholder="Contraseña"
-                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 dark:text-white transition-all shadow-inner"
+                            className="w-full pl-10 pr-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-brand outline-none text-slate-900 dark:text-white transition-all shadow-inner"
                         />
                     </div>
 
@@ -164,7 +175,7 @@ export function Auth() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-600/30 hover:shadow-indigo-600/50 disabled:shadow-none"
+                        className="w-full py-3 px-4 bg-brand hover:bg-brand-dark disabled:opacity-50 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-brand/30 hover:shadow-brand/50 disabled:shadow-none"
                     >
                         {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                             <>
@@ -181,7 +192,7 @@ export function Auth() {
                             setIsLogin(!isLogin);
                             setError(null);
                         }}
-                        className="text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors text-sm font-medium"
+                        className="text-slate-500 dark:text-slate-400 hover:text-brand dark:hover:text-brand-light transition-colors text-sm font-medium"
                     >
                         {isLogin ? '¿No tienes cuenta? Regístrate aquí' : '¿Ya tienes cuenta? Inicia sesión'}
                     </button>

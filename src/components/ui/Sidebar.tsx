@@ -19,15 +19,18 @@ const SidebarItem = ({ icon: Icon, label, to, collapsed }: SidebarItemProps) => 
     return (
         <Link
             to={to}
+    return (
+        <Link
+            to={to}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 relative overflow-hidden ${active
-                ? 'bg-indigo-600/90 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/20 backdrop-blur-sm'
+                ? 'bg-brand text-white shadow-lg shadow-brand/20 backdrop-blur-sm'
                 : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100/50 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white'
                 } ${collapsed ? 'justify-center px-0' : ''}`}
             title={collapsed ? label : ''}
         >
             <Icon className={`w-5 h-5 flex-shrink-0 z-10 ${active ? 'animate-pulse' : ''}`} />
             {!collapsed && <span className="font-medium whitespace-nowrap z-10">{label}</span>}
-            {active && <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-indigo-600 opacity-50 blur-xl -z-0"></div>}
+            {active && <div className="absolute inset-0 bg-gradient-to-r from-brand-light to-brand opacity-50 blur-xl -z-0"></div>}
         </Link>
     );
 };
@@ -55,12 +58,22 @@ export const Sidebar = ({ navigations }: { navigations: any[] }) => {
                 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-700/50 p-6 flex flex-col gap-8 
                 transition-all duration-300 z-40 fixed h-full lg:relative
             `}>
-                <div className="flex items-center justify-between px-2 overflow-hidden h-8">
+                <div className="flex items-center justify-between px-2 overflow-hidden h-10">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
+                        <img 
+                            src="/logo.png" 
+                            alt="Logo" 
+                            className="w-8 h-8 flex-shrink-0 object-contain"
+                            onError={(e) => {
+                                // Fallback a icono si la imagen no existe aún
+                                e.currentTarget.style.display = 'none';
+                                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            }}
+                        />
+                        <div className="hidden w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-brand shadow-md">
                             <TrendingUp className="w-5 h-5 text-white" />
                         </div>
-                        {sidebarOpen && <span className="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 whitespace-nowrap transition-opacity duration-300">SalesOps</span>}
+                        {sidebarOpen && <span className="font-bold text-lg tracking-tight text-brand dark:text-white whitespace-nowrap transition-opacity duration-300">Inversión Racional</span>}
                     </div>
                     {/* Collapsible toggle for mobile inside sidebar */}
                     <button onClick={toggleSidebar} className="lg:hidden p-1 text-slate-400">
