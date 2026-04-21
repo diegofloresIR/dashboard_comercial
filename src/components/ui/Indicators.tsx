@@ -53,8 +53,8 @@ const DefaultEmptyIcon = ({ className }: { className?: string }) => (
 
 export const EmptyState = ({ title, description, icon: Icon = DefaultEmptyIcon }: EmptyStateProps) => (
     <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md p-12 rounded-3xl border border-dashed border-slate-300 dark:border-slate-600 shadow-sm text-center flex flex-col items-center justify-center min-h-[400px]">
-        <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-6 shadow-inner">
-            <Icon className="w-10 h-10 text-indigo-400 dark:text-indigo-500" />
+        <div className="w-20 h-20 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6 shadow-inner">
+            <Icon className="w-10 h-10 text-blue-400 dark:text-blue-500" />
         </div>
         <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{title}</h3>
         <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">

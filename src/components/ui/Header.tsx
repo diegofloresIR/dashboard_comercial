@@ -88,7 +88,7 @@ export const Header = () => {
                         onClick={toggleSidebar}
                         className="p-2.5 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md rounded-xl shadow-sm border border-slate-200/50 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-700 transition-all group"
                     >
-                        {sidebarOpen ? <PanelLeftClose className="w-5 h-5 text-slate-500 group-hover:text-indigo-600 transition-colors" /> : <PanelLeftOpen className="w-5 h-5 text-slate-500 group-hover:text-indigo-600 transition-colors" />}
+                        {sidebarOpen ? <PanelLeftClose className="w-5 h-5 text-slate-500 group-hover:text-blue-600 transition-colors" /> : <PanelLeftOpen className="w-5 h-5 text-slate-500 group-hover:text-blue-600 transition-colors" />}
                     </button>
                     <div>
                         <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300">
@@ -103,13 +103,13 @@ export const Header = () => {
                         onClick={toggleTheme}
                         className="p-2.5 bg-white/60 dark:bg-slate-800/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-700/50 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all"
                     >
-                        {isDark ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-indigo-600" />}
+                        {isDark ? <Sun className="w-5 h-5 text-amber-500" /> : <Moon className="w-5 h-5 text-blue-600" />}
                     </button>
 
                     <div className="bg-white/60 dark:bg-slate-800/60 backdrop-blur-md px-4 py-2.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50 flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300 shadow-sm">
                         <div className="flex items-center gap-2" title={syncStatus.title}>
                             <span className={`w-2 h-2 rounded-full ${syncStatus.color} animate-pulse`} />
-                            <Clock className="w-4 h-4 text-indigo-500" />
+                            <Clock className="w-4 h-4 text-blue-500" />
                             <span className="hidden sm:inline">Sync:</span> {syncStatus.label}
                         </div>
                         <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
@@ -121,7 +121,7 @@ export const Header = () => {
                             <button
                                 onClick={() => handleSync(false)}
                                 disabled={syncing}
-                                className="text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 transition-all flex items-center gap-1.5 disabled:opacity-50 font-semibold"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 transition-all flex items-center gap-1.5 disabled:opacity-50 font-semibold"
                                 title="Sincronizar nuevas actualizaciones"
                             >
                                 <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
@@ -145,7 +145,7 @@ export const Header = () => {
                 <select
                     value={filters.period}
                     onChange={(e) => handlePeriodChange(e.target.value)}
-                    className="bg-slate-50 dark:bg-slate-900 border-none rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner text-slate-700 dark:text-slate-200 cursor-pointer"
+                    className="bg-slate-50 dark:bg-slate-900 border-none rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 transition-all shadow-inner text-slate-700 dark:text-slate-200 cursor-pointer"
                 >
                     <option value="all">Todo el tiempo</option>
                     <option value="today">Hoy</option>
@@ -166,7 +166,7 @@ export const Header = () => {
                                 type="date"
                                 value={filters.startDate}
                                 onChange={(e) => setFilters({ startDate: e.target.value })}
-                                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner text-slate-700 dark:text-slate-200 cursor-pointer w-[140px] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer z-10"
+                                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 transition-all shadow-inner text-slate-700 dark:text-slate-200 cursor-pointer w-[140px] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer z-10"
                             />
                             <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -178,7 +178,7 @@ export const Header = () => {
                                 type="date"
                                 value={filters.endDate}
                                 onChange={(e) => setFilters({ endDate: e.target.value })}
-                                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner text-slate-700 dark:text-slate-200 cursor-pointer w-[140px] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer z-10"
+                                className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 transition-all shadow-inner text-slate-700 dark:text-slate-200 cursor-pointer w-[140px] [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer z-10"
                             />
                             <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -190,7 +190,7 @@ export const Header = () => {
                 <select
                     value={filters.pipelineId}
                     onChange={(e) => setFilters({ pipelineId: e.target.value })}
-                    className="bg-slate-50 dark:bg-slate-900 border-none rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner text-slate-700 dark:text-slate-200 cursor-pointer max-w-[200px] truncate"
+                    className="bg-slate-50 dark:bg-slate-900 border-none rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 transition-all shadow-inner text-slate-700 dark:text-slate-200 cursor-pointer max-w-[200px] truncate"
                 >
                     <option value="">Todos los Pipelines</option>
                     {Array.isArray(pipelines) && pipelines.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -199,7 +199,7 @@ export const Header = () => {
                 <select
                     value={filters.userId}
                     onChange={(e) => setFilters({ userId: e.target.value })}
-                    className="bg-slate-50 dark:bg-slate-900 border-none rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all shadow-inner text-slate-700 dark:text-slate-200 cursor-pointer max-w-[200px] truncate"
+                    className="bg-slate-50 dark:bg-slate-900 border-none rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 transition-all shadow-inner text-slate-700 dark:text-slate-200 cursor-pointer max-w-[200px] truncate"
                 >
                     <option value="">Todos los Closers</option>
                     {Array.isArray(customClosers) && customClosers.map(c => <option key={c} value={c}>{c}</option>)}

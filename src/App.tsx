@@ -221,7 +221,7 @@ export default function App() {
 
   if (loading) return (
     <div className="h-screen w-full flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-      <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+      <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
     </div>
   );
 
@@ -234,8 +234,8 @@ export default function App() {
       <div className={`flex h-screen overflow-hidden ${isDark ? 'dark' : ''} bg-slate-50 dark:bg-slate-900 font-sans text-slate-900 dark:text-slate-100 transition-colors duration-300 relative`}>
 
         {/* Animated Background Blobs for Glassmorphism effect */}
-        <div className="absolute top-0 right-[-10%] w-[40vw] h-[40vw] rounded-full bg-indigo-500/10 dark:bg-indigo-500/5 blur-3xl mix-blend-multiply dark:mix-blend-screen pointer-events-none z-0"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-purple-500/10 dark:bg-purple-500/5 blur-3xl mix-blend-multiply dark:mix-blend-screen pointer-events-none z-0"></div>
+        <div className="absolute top-0 right-[-10%] w-[40vw] h-[40vw] rounded-full bg-blue-500/10 dark:bg-blue-500/5 blur-3xl mix-blend-multiply dark:mix-blend-screen pointer-events-none z-0"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-cyan-500/10 dark:bg-cyan-500/5 blur-3xl mix-blend-multiply dark:mix-blend-screen pointer-events-none z-0"></div>
 
         <Sidebar navigations={navigations.filter(n => !n.roles || n.roles.includes(user?.role ?? ''))} />
 
